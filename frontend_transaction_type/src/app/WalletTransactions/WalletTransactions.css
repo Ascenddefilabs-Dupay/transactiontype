@@ -1,0 +1,50 @@
+/* src/CurrencyForm.css */
+.currency-form {
+    max-width: 320px;
+    margin: 0 auto;
+    padding: 20px;
+    border: 1px solid black;
+    border-radius: 5px;
+    background-color: black;
+  }
+  
+  .currency-form .form-group {
+    margin-bottom: 15px;
+  }
+  
+  .currency-form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: white;
+  }
+  
+  .currency-form input,
+  .currency-form select {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid black;
+    border-radius: 5px;
+    box-sizing: border-box;
+    color: black;
+  }
+  
+  .currency-form button {
+    width: 100%;
+    padding: 10px;
+    background-color: #007bff;
+    color: black;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  
+  .currency-form button:hover {
+    background-color: #0056b3;
+  }
+  .center-label{
+    text-align: center;
+    margin: 20px;
+  }
