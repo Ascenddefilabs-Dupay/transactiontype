@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import '../WalletTransactions/WalletTransactions.css'; // Ensure you have the correct path to your CSS file
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid'; // Import the uuid library
+import { QrReader } from 'react-qr-reader';
 
 const CurrencyForm = () => {
   const [mobileNumber, setMobileNumber] = useState('');
   const [amount, setAmount] = useState('');
   const [currency, setCurrency] = useState('');
   const [message, setMessage] = useState(''); // State to store the success message
+  const [scanning, setScanning] = useState(false); // State to manage scanning state
 
   const currencies = [
     { code: 'USD', name: 'United States Dollar' },
@@ -17,6 +19,43 @@ const CurrencyForm = () => {
     { code: 'JPY', name: 'Japanese Yen' },
     // Add more currencies as needed
   ];
+
+  const parseQueryParams = (url) => {
+    const params = new URLSearchParams(url.split('?')[1]);
+    return {
+      mobileNumber: params.get('mobileNumber') || '',
+      amount: params.get('amount') || '',
+      currency: params.get('currency') || '',
+    };
+  };
+
+  const handleScan = (result) => {
+    if (result) {
+      try {
+        const url = result.text.trim();
+        // Redirect to the URL scanned from the QR code
+        window.location.href = url;
+
+        // Optionally parse query parameters if URL includes them
+        const { mobileNumber, amount, currency } = parseQueryParams(url);
+        if (/^\d{10}$/.test(mobileNumber) && !isNaN(amount) && amount > 0 && currency) {
+          setMobileNumber(mobileNumber);
+          setAmount(amount);
+          setCurrency(currency);
+          setScanning(false); // Stop scanning after a successful scan
+        } else {
+          alert('Scanned data is not valid');
+        }
+      } catch (error) {
+        alert('Scanned data is not a valid URL');
+      }
+    }
+  };
+
+  const handleError = (err) => {
+    console.error(err);
+    alert('Error scanning the QR code');
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -85,6 +124,19 @@ const CurrencyForm = () => {
           }}
           required
         />
+      </div>
+      <div className="form-group">
+        <button type="button" onClick={() => setScanning(!scanning)}>
+          {scanning ? 'Stop Scanning' : 'Scan QR Code'}
+        </button>
+        {scanning && (
+          <QrReader
+            delay={300}
+            onError={handleError}
+            onResult={handleScan}
+            style={{ width: '100%' }}
+          />
+        )}
       </div>
       <div className="form-group">
         <label htmlFor="amount">Amount:</label>
