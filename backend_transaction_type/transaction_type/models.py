@@ -2,7 +2,7 @@ from django.db import models
 import re
 import hashlib
 import uuid
-
+from django.db import connection
 import qrcode
 from io import BytesIO
 import base64
@@ -58,6 +58,8 @@ class TransactionTable(models.Model):
     transaction_hash = models.CharField(max_length=255, unique=True)
     transaction_fee = models.DecimalField(max_digits=18, decimal_places=8, null=True, blank=True)
     person_phone_number = models.CharField(max_length=15)
+    wallet_id = models.CharField(max_length=100)
+    sender_mobile_number= models.CharField(max_length=15)
 
     class Meta:
         db_table = 'transaction_table'
@@ -69,6 +71,13 @@ class TransactionTable(models.Model):
         if not self.transaction_id:
             self.transaction_id = self.generate_transaction_id()
 
+        if not self.wallet_id:
+            self.wallet_id = self.wallet_id_fetch()
+
+        if not self.sender_mobile_number:
+            self.sender_mobile_number = self.sender_mobile_number_fetch()
+        
+
         super().save(*args, **kwargs)
 
     def generate_transaction_id(self):
@@ -79,6 +88,19 @@ class TransactionTable(models.Model):
             new_number = number + 1
             return f'TRANS{new_number:06d}'
         return 'TRANS000001'
+    
+    def wallet_id_fetch(self):
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM wallet_table")
+            rows = cursor.fetchall()
+        print(rows[-1][1])
+        return rows[-1][1]
+    def sender_mobile_number_fetch(self):
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM wallet_table")
+            rows = cursor.fetchall()
+        print(rows[-1][2])
+        return rows[-1][2]
 
 
 class WalletTable(models.Model):

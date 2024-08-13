@@ -93,7 +93,12 @@ const CurrencyForm = () => {
         person_phone_number: mobileNumber, // Update to match the Django model field name
         transaction_hash: transactionHash, // Include the unique hash
       });
-      alert('Transaction successful!');
+      if (response.data.status === 'failure'){
+        alert('Transaction Failure!');
+      }
+      else{
+        alert('Transaction successful!');
+      }
       console.log('Transaction successful:', response.data);
 
       // Reset form fields after successful submission
@@ -125,19 +130,7 @@ const CurrencyForm = () => {
           required
         />
       </div>
-      <div className="form-group">
-        <button type="button" onClick={() => setScanning(!scanning)}>
-          {scanning ? 'Stop Scanning' : 'Scan QR Code'}
-        </button>
-        {scanning && (
-          <QrReader
-            delay={300}
-            onError={handleError}
-            onResult={handleScan}
-            style={{ width: '100%' }}
-          />
-        )}
-      </div>
+      
       <div className="form-group">
         <label htmlFor="amount">Amount:</label>
         <input

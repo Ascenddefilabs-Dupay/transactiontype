@@ -9,6 +9,8 @@ from rest_framework.exceptions import ValidationError
 from .models import User
 from .serializers import UserSerializer
 from rest_framework.views import APIView
+from django.db import connection
+from django.http import JsonResponse
 
 class UserRegistrationView(APIView):
     def post(self, request, *args, **kwargs):
@@ -43,15 +45,30 @@ class TransactionViewSet(viewsets.ModelViewSet):
     queryset = TransactionTable.objects.all()
     serializer_class = TransactionSerializer
 
+
     def create(self, request, *args, **kwargs):
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM wallet_table")
+            rows = cursor.fetchall()
+        print(rows[-1])
         try:
-            return super().create(request, *args, **kwargs)
+            wallet_id = rows[-1][1]
+            sender_mobile_number = rows[-1][2]
+            amount = rows[-1][3]
+            if wallet_id and sender_mobile_number:
+                request.data['wallet_id'] = wallet_id
+                request.data['sender_mobile_number'] = sender_mobile_number
+            print(request.data.get('transaction_amount'), type(request.data.get('transaction_amount')))
+            if float(request.data.get('transaction_amount')) < float(amount):
+                return super().create(request, *args, **kwargs) 
+            else:
+                return JsonResponse({'status': 'failure', 'message': 'Payment Failure'})
+
         except ValidationError as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({'error': 'An unexpected error occurred'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-
 class WalletViewSet(viewsets.ModelViewSet):
     queryset = WalletTable.objects.all()
     serializer_class = WalletSerializer
