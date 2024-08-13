@@ -1,0 +1,78 @@
+.qr-scanner-container {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 25px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    text-align: center;
+    background-color: black;
+
+  }
+  
+  .scan-button,
+  .cancel-button {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 10px;
+  }
+  
+  .scan-button {
+    background-color: #4caf50;
+    color: white;
+  }
+  
+  .cancel-button {
+    background-color: #f44336;
+    color: white;
+  }
+  
+  .scanner-wrapper {
+    position: relative;
+    display: inline-block;
+    height: 300px;
+    width: 300px;
+  }
+  
+  .amount-form {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .amount-form label {
+    display: block;
+    margin-bottom: 10px;
+  }
+  
+  .amount-form input {
+    padding: 5px;
+    color: black;
+    margin-bottom: 20x;
+  }
+  
+  .amount-form button {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    background-color: #2196f3;
+    color: white;
+    cursor: pointer;
+    margin-top: 20x;
+  }
+  .heading{
+    color: white;
+    font-weight: bold;
+  }
+
+  .amount_label{
+    color: white;
+    text-align: left;
+  }
+
+  .button_class{
+    margin-top: 10px;
+  }
