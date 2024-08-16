@@ -57,7 +57,7 @@ class TransactionTable(models.Model):
     transaction_status = models.CharField(max_length=50)
     transaction_hash = models.CharField(max_length=255, unique=True)
     transaction_fee = models.DecimalField(max_digits=18, decimal_places=8, null=True, blank=True)
-    person_phone_number = models.CharField(max_length=15)
+    user_phone_number = models.CharField(max_length=15)
     wallet_id = models.CharField(max_length=100)
     sender_mobile_number= models.CharField(max_length=15)
 
