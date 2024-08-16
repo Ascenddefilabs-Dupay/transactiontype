@@ -1,17 +1,15 @@
 # wallet/urls.py
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import ProjectViewSet, TransactionViewSet ,WalletViewSet,AddressViewSet,AddressBasedTransactionViewSet ,UserRegistrationView ,QRCodeListView, QRViewSet
+from .views import ProjectViewSet, TransactionViewSet  ,UserRegistrationView ,QRCodeListView, QRViewSet ,FiatAddressViewSet
 
 
 router = DefaultRouter()
 
 router.register(r'projects', ProjectViewSet)
-router.register(r'wallets', WalletViewSet)
 router.register(r'wallet_transfer', TransactionViewSet)  # Make sure the URL pattern is 'transactions'
 router.register(r'qrcode', QRViewSet, basename='qrcode')
-router.register(r'address', AddressViewSet)
-router.register(r'address_based_transfer', AddressBasedTransactionViewSet)
+router.register(r'address-transfer', FiatAddressViewSet, basename='address-transfer')
 
 
 urlpatterns = [
