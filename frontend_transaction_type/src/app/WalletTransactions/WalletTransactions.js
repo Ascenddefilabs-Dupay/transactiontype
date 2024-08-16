@@ -90,15 +90,20 @@ const CurrencyForm = () => {
         transaction_currency: currency,
         transaction_status: 'Success', // Default value
         transaction_fee: 0.0, // Default value
-        person_phone_number: mobileNumber, // Update to match the Django model field name
+        user_phone_number: mobileNumber, // Update to match the Django model field name
         transaction_hash: transactionHash, // Include the unique hash
       });
       if (response.data.status === 'failure'){
         alert('Transaction Failure!');
+      }else if (response.data.status === 'mobile_failure'){
+        alert("Number is not valid")
+      }else if (response.data.status === 'currency_failure'){
+        alert("Curresncy type must be Same")
       }
-      else{
+      else {
         alert('Transaction successful!');
       }
+      
       console.log('Transaction successful:', response.data);
 
       // Reset form fields after successful submission

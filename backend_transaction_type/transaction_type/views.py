@@ -44,7 +44,16 @@ class ProjectViewSet(viewsets.ModelViewSet):
 class TransactionViewSet(viewsets.ModelViewSet):
     queryset = TransactionTable.objects.all()
     serializer_class = TransactionSerializer
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM wallet_table")
+        rows = cursor.fetchall()
 
+    receiver_numbers = []
+    wallet_ids = []
+    for i in rows:
+        receiver_numbers.append(i[2])
+        wallet_ids.append(i[1])
+    print(wallet_ids)
 
     def create(self, request, *args, **kwargs):
         with connection.cursor() as cursor:
@@ -55,14 +64,48 @@ class TransactionViewSet(viewsets.ModelViewSet):
             wallet_id = rows[-1][1]
             sender_mobile_number = rows[-1][2]
             amount = rows[-1][3]
+            currncy_type = rows[-1][4]
+
+            receiver_numbers = []
+            wallet_ids = []
+            wallet_amount = []
+            for i in rows:
+                receiver_numbers.append(i[2])
+                wallet_ids.append(i[1])
+                wallet_amount.append(i[3])
+            index = 0
             if wallet_id and sender_mobile_number:
                 request.data['wallet_id'] = wallet_id
                 request.data['sender_mobile_number'] = sender_mobile_number
             print(request.data.get('transaction_amount'), type(request.data.get('transaction_amount')))
-            if float(request.data.get('transaction_amount')) < float(amount):
-                return super().create(request, *args, **kwargs) 
+
+            if (request.data['user_phone_number'] in receiver_numbers):
+                index = receiver_numbers.index(request.data['user_phone_number'])
+            
+            if request.data['user_phone_number'] not in receiver_numbers:
+                print(request.data['user_phone_number'])
+                return JsonResponse({'status': 'mobile_failure', 'message': 'Mobile Number Failure'})
+            elif currncy_type != request.data['transaction_currency']:
+                return JsonResponse({'status': 'currency_failure', 'message': 'Currency must be same'})
+            
             else:
-                return JsonResponse({'status': 'failure', 'message': 'Payment Failure'})
+                if float(request.data.get('transaction_amount')) < float(amount):
+                    deducted_amount = float(amount) - float(request.data.get('transaction_amount'))
+                    credit_amount = float(wallet_amount[index]) + float(request.data.get('transaction_amount'))
+                    print(wallet_ids[index], credit_amount)
+                    with connection.cursor() as cursor:
+                            cursor.execute(
+                                "UPDATE wallet_table SET amount = %s WHERE wallet_id = %s",
+                                [deducted_amount, wallet_id]
+                            )
+                    with connection.cursor() as cursor:
+                            cursor.execute(
+                                "UPDATE wallet_table SET amount = %s WHERE wallet_id = %s",
+                                [credit_amount, wallet_ids[index]]
+                            )
+                    return super().create(request, *args, **kwargs) 
+                else:
+                    return JsonResponse({'status': 'failure', 'message': 'Payment Failure'})
 
         except ValidationError as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -112,3 +155,74 @@ class AddressBasedTransactionViewSet(viewsets.ModelViewSet):
         
     #     # If the fiat address exists, proceed with creating the transaction
     #     return super().create(request, *args, **kwargs)
+
+class QRViewSet(viewsets.ModelViewSet):
+    queryset = TransactionTable.objects.all()
+    serializer_class = TransactionSerializer
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM wallet_table")
+        rows = cursor.fetchall()
+
+    receiver_numbers = []
+    wallet_ids = []
+    for i in rows:
+        receiver_numbers.append(i[2])
+        wallet_ids.append(i[1])
+    print(wallet_ids)
+
+    def create(self, request, *args, **kwargs):
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM wallet_table")
+            rows = cursor.fetchall()
+        print(rows[-1])
+        try:
+            wallet_id = rows[-1][1]
+            sender_mobile_number = rows[-1][2]
+            amount = rows[-1][3]
+            currncy_type = rows[-1][4]
+
+            receiver_numbers = []
+            wallet_ids = []
+            wallet_amount = []
+            for i in rows:
+                receiver_numbers.append(i[2])
+                wallet_ids.append(i[1])
+                wallet_amount.append(i[3])
+            index = 0
+            if wallet_id and sender_mobile_number:
+                request.data['wallet_id'] = wallet_id
+                request.data['sender_mobile_number'] = sender_mobile_number
+            print(request.data.get('transaction_amount'), type(request.data.get('transaction_amount')))
+
+            if (request.data['user_phone_number'] in receiver_numbers):
+                index = receiver_numbers.index(request.data['user_phone_number'])
+            
+            if request.data['user_phone_number'] not in receiver_numbers:
+                print(request.data['user_phone_number'])
+                return JsonResponse({'status': 'mobile_failure', 'message': 'Mobile Number Failure'})
+            elif currncy_type != request.data['transaction_currency']:
+                return JsonResponse({'status': 'currency_failure', 'message': 'Currency must be same'})
+            
+            else:
+                if float(request.data.get('transaction_amount')) < float(amount):
+                    deducted_amount = float(amount) - float(request.data.get('transaction_amount'))
+                    credit_amount = float(wallet_amount[index]) + float(request.data.get('transaction_amount'))
+                    print(wallet_ids[index], credit_amount)
+                    with connection.cursor() as cursor:
+                            cursor.execute(
+                                "UPDATE wallet_table SET amount = %s WHERE wallet_id = %s",
+                                [deducted_amount, wallet_id]
+                            )
+                    with connection.cursor() as cursor:
+                            cursor.execute(
+                                "UPDATE wallet_table SET amount = %s WHERE wallet_id = %s",
+                                [credit_amount, wallet_ids[index]]
+                            )
+                    return super().create(request, *args, **kwargs) 
+                else:
+                    return JsonResponse({'status': 'failure', 'message': 'Payment Failure'})
+
+        except ValidationError as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': 'An unexpected error occurred'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
