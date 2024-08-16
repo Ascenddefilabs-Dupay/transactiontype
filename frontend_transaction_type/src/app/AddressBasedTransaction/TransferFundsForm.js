@@ -1,18 +1,16 @@
 
-
-
 'use client'
 
+import { v4 as uuidv4 } from 'uuid'; 
 import React, { useState } from 'react';
 import axios from 'axios';
-import './AddressBasedTransactionForm.css';
+import './AddressBasedTransactionForm.css'; // Ensure the path to your CSS file is correct
 
 const AddressBasedTransactionForm = () => {
-  const [transactionType, setTransactionType] = useState('');
   const [transactionAmount, setTransactionAmount] = useState('');
   const [transactionCurrency, setTransactionCurrency] = useState('');
   const [fiatAddress, setFiatAddress] = useState('');
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState(''); // State to store the message
 
   const currencies = [
     { code: 'USD', name: 'United States Dollar' },
@@ -20,52 +18,65 @@ const AddressBasedTransactionForm = () => {
     { code: 'EUR', name: 'Euro' },
     { code: 'INR', name: 'Indian Rupee' },
     { code: 'JPY', name: 'Japanese Yen' },
+    // Add more currencies as needed
   ];
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    try {
-      // Check fiat address validity
-      const addressResponse = await axios.get(`http://localhost:8000/api/address/?fiat_address=${fiatAddress}`);
-      if (addressResponse.data.count === 0) {
-        alert('Entered fiat address does not exist.');
-        return;
-      }
-    } catch (error) {
-      console.error('Error checking fiat address:', error);
-      setMessage('Error checking fiat address.');
-      return;
-    }
+  // Validate amount
+  if (isNaN(transactionAmount) || transactionAmount <= 0) {
+    setMessage('Enter a valid amount');
+    return;
+  }
 
-    try {
-      // Submit transaction
-      const response = await axios.post('http://localhost:8000/api/address_based_transfer/', {
-        transaction_type: 'Debit',
-        transaction_amount: transactionAmount,
-        transaction_currency: transactionCurrency,
-        transaction_status: 'Success',  // Default value
-        fiat_address: fiatAddress,
-      });
+  // Validate currency selection
+  if (!transactionCurrency) {
+    setMessage('Select a valid currency');
+    return;
+  }
+
+  // Validate fiat address
+  if (!fiatAddress) {
+    setMessage('Enter a valid fiat address');
+    return;
+  }
+  const transactionHash = uuidv4();
+  const transactionDescription = 'fiat address transaction';
+
+  try {
+    const response = await axios.post('http://localhost:8000/api/address-transfer/', {
+      transaction_amount: transactionAmount,
+      transaction_currency: transactionCurrency,
+      transaction_type: 'Debit',
+      transaction_status: 'Success',
+      fiat_address: fiatAddress,
+      transaction_fee: 0.0,
+      transaction_hash: transactionHash,
+      transaction_description: transactionDescription,
+    });
+
+    if (response.data.status === 'address_failure') {
+      alert('Entered fiat address does not exist.');
+    } else if (response.data.status === 'failure') {
+      alert('Insufficient funds for the transaction.');
+    } else {
       alert('Transaction successful!');
-      console.log('Transaction successful:', response.data);
-
-      // Reset form fields
-      setTransactionType('');
       setTransactionAmount('');
       setTransactionCurrency('');
       setFiatAddress('');
-      setMessage('');
-    } catch (error) {
-      setMessage(error.response ? error.response.data.detail : 'Error submitting transaction');
-      console.error('Error submitting transaction:', error.response ? error.response.data : error.message);
     }
-  };
+
+  } catch (error) {
+    setMessage(error.response ? error.response.data.error : 'Error submitting transaction');
+    console.error('Error submitting transaction:', error.response ? error.response.data : error.message);
+  }
+};
 
   return (
     <div className="address-based-transaction-form-container">
-      <h2 className="form-heading">Address Based Transaction</h2>
       <form className="address-based-transaction-form" onSubmit={handleSubmit}>
+        <h2 className="form-heading">Fiat Wallet Transaction</h2>
         <div className="form-group">
           <label htmlFor="transactionCurrency">Currency:</label>
           <select
@@ -103,7 +114,7 @@ const AddressBasedTransactionForm = () => {
           />
         </div>
         <button type="submit">Submit</button>
-        {message && <p className="error-message">{message}</p>}
+        {message && <p className="message">{message}</p>}
       </form>
     </div>
   );

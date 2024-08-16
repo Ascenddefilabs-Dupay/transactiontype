@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework import viewsets
-from .models import Project ,TransactionTable ,WalletTable ,Address,AddressBasedTransaction
-from .serializers import ProjectSerializer ,TransactionSerializer ,WalletSerializer ,AddressSerializer ,AddressBasedTransactionSerializer
+from .models import Project ,TransactionTable 
+from .serializers import ProjectSerializer ,TransactionSerializer 
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
@@ -112,49 +112,8 @@ class TransactionViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'error': 'An unexpected error occurred'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-class WalletViewSet(viewsets.ModelViewSet):
-    queryset = WalletTable.objects.all()
-    serializer_class = WalletSerializer
 
 
-class AddressViewSet(viewsets.ModelViewSet):
-    queryset = Address.objects.all()
-    serializer_class = AddressSerializer
-
-
-class AddressBasedTransactionViewSet(viewsets.ModelViewSet):
-    queryset = AddressBasedTransaction.objects.all()
-    serializer_class = AddressBasedTransactionSerializer
-
-
-    def create(self, request, *args, **kwargs):
-        fiat_address = request.data.get('fiat_address')
-
-        # Check if the fiat_address exists in the Address model
-        if not Address.objects.filter(fiat_address=fiat_address).exists():
-            return Response(
-                {"detail": "Fiat address not found."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # Validate and save the transaction data
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    # def create(self, request, *args, **kwargs):
-    #     fiat_address = request.data.get('fiat_address')
-        
-    #     # Check if the fiat address exists in the Address table
-    #     if not Address.objects.filter(fiat_address=fiat_address).exists():
-    #         return Response(
-    #             {'detail': 'Fiat address does not exist in the address table.'},
-    #             status=status.HTTP_400_BAD_REQUEST
-    #         )
-        
-    #     # If the fiat address exists, proceed with creating the transaction
-    #     return super().create(request, *args, **kwargs)
 
 class QRViewSet(viewsets.ModelViewSet):
     queryset = TransactionTable.objects.all()
@@ -226,3 +185,67 @@ class QRViewSet(viewsets.ModelViewSet):
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({'error': 'An unexpected error occurred'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
+
+
+
+        
+class FiatAddressViewSet(viewsets.ModelViewSet):
+    queryset = TransactionTable.objects.all()
+    serializer_class = TransactionSerializer
+
+    def create(self, request, *args, **kwargs):
+        fiat_address = request.data.get('fiat_address')
+        transaction_amount = float(request.data.get('transaction_amount'))
+
+        # Fetch wallet info based on fiat address
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM wallet_table WHERE fiat_address = %s", [fiat_address])
+            rows = cursor.fetchall()
+
+        if not rows:
+            return JsonResponse({'status': 'address_failure', 'message': 'Fiat Address does not exist.'})
+
+        try:
+            # Process the wallet associated with the fiat address
+            wallet_row = rows[0]  # Assuming there's only one row for the fiat address
+            wallet_id = wallet_row[1]  # Wallet ID is in column 1
+            wallet_amount = float(wallet_row[3])  # Ensure this column exists and holds the wallet amount
+
+            # Fetch the last row of the wallet table
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT * FROM wallet_table ORDER BY wallet_id DESC LIMIT 1")
+                last_row = cursor.fetchone()
+
+            if not last_row:
+                return JsonResponse({'status': 'failure', 'message': 'No wallet records found.'})
+
+            last_wallet_id = last_row[1]  # Wallet ID in the last row
+            last_wallet_amount = float(last_row[3])  # Amount in the last row
+
+            # Validate if transaction amount is less than or equal to the last wallet amount
+            if transaction_amount > last_wallet_amount:
+                return JsonResponse({'status': 'failure', 'message': 'Insufficient funds in the last wallet row.'})
+
+            # Add the transaction amount to the wallet associated with the fiat address
+            updated_wallet_amount = wallet_amount + transaction_amount
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "UPDATE wallet_table SET amount = %s WHERE wallet_id = %s",
+                    [updated_wallet_amount, wallet_id]
+                )
+
+            # Deduct the transaction amount from the last wallet row
+            updated_last_wallet_amount = last_wallet_amount - transaction_amount
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "UPDATE wallet_table SET amount = %s WHERE wallet_id = %s",
+                    [updated_last_wallet_amount, last_wallet_id]
+                )
+
+            # Proceed with creating the transaction record
+            return super().create(request, *args, **kwargs)
+
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
