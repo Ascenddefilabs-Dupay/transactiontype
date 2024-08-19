@@ -22,56 +22,59 @@ const AddressBasedTransactionForm = () => {
   ];
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  // Validate amount
-  if (isNaN(transactionAmount) || transactionAmount <= 0) {
-    setMessage('Enter a valid amount');
-    return;
-  }
-
-  // Validate currency selection
-  if (!transactionCurrency) {
-    setMessage('Select a valid currency');
-    return;
-  }
-
-  // Validate fiat address
-  if (!fiatAddress) {
-    setMessage('Enter a valid fiat address');
-    return;
-  }
-  const transactionHash = uuidv4();
-  const transactionDescription = 'fiat address transaction';
-
-  try {
-    const response = await axios.post('http://localhost:8000/api/address-transfer/', {
-      transaction_amount: transactionAmount,
-      transaction_currency: transactionCurrency,
-      transaction_type: 'Debit',
-      transaction_status: 'Success',
-      fiat_address: fiatAddress,
-      transaction_fee: 0.0,
-      transaction_hash: transactionHash,
-      transaction_description: transactionDescription,
-    });
-
-    if (response.data.status === 'address_failure') {
-      alert('Entered fiat address does not exist.');
-    } else if (response.data.status === 'failure') {
-      alert('Insufficient funds for the transaction.');
-    } else {
-      alert('Transaction successful!');
-      setTransactionAmount('');
-      setTransactionCurrency('');
-      setFiatAddress('');
+    // Validate amount
+    if (isNaN(transactionAmount) || transactionAmount <= 0) {
+      setMessage('Enter a valid amount');
+      return;
     }
 
-  } catch (error) {
-    setMessage(error.response ? error.response.data.error : 'Error submitting transaction');
-    console.error('Error submitting transaction:', error.response ? error.response.data : error.message);
-  }
-};
+    // Validate currency selection
+    if (!transactionCurrency) {
+      setMessage('Select a valid currency');
+      return;
+    }
+
+    // Validate fiat address
+    if (!fiatAddress) {
+      setMessage('Enter a valid fiat address');
+      return;
+    }
+
+    const transactionHash = uuidv4();
+    const transactionDescription = 'fiat address transaction';
+
+    try {
+      const response = await axios.post('http://localhost:8000/api/address-transfer/', {
+        transaction_amount: transactionAmount,
+        transaction_currency: transactionCurrency,
+        transaction_type: 'Debit',
+        transaction_status: 'Success',
+        fiat_address: fiatAddress,
+        transaction_fee: 0.0,
+        transaction_hash: transactionHash,
+        transaction_description: transactionDescription,
+      });
+
+      if (response.data.status === 'address_failure') {
+        alert('Entered fiat address does not exist.');
+      } else if (response.data.status === 'currency_failure') {
+        alert('Currency must be the same.');
+      } else if (response.data.status === 'failure') {
+        alert('Insufficient funds for the transaction.');
+      } else {
+        alert('Transaction successful!');
+        setTransactionAmount('');
+        setTransactionCurrency('');
+        setFiatAddress('');
+      }
+
+    } catch (error) {
+      setMessage(error.response ? error.response.data.error : 'Error submitting transaction');
+      console.error('Error submitting transaction:', error.response ? error.response.data : error.message);
+    }
+  };
 
   return (
     <div className="address-based-transaction-form-container">

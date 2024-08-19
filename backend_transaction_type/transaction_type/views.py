@@ -45,34 +45,34 @@ class TransactionViewSet(viewsets.ModelViewSet):
     queryset = TransactionTable.objects.all()
     serializer_class = TransactionSerializer
     with connection.cursor() as cursor:
-        cursor.execute("SELECT * FROM wallet_table")
+        cursor.execute("SELECT * FROM currency_converter_fiatwallet")
         rows = cursor.fetchall()
 
     receiver_numbers = []
     wallet_ids = []
     for i in rows:
         receiver_numbers.append(i[2])
-        wallet_ids.append(i[1])
+        wallet_ids.append(i[0])
     print(wallet_ids)
 
     def create(self, request, *args, **kwargs):
         with connection.cursor() as cursor:
-            cursor.execute("SELECT * FROM wallet_table")
+            cursor.execute("SELECT * FROM currency_converter_fiatwallet")
             rows = cursor.fetchall()
         print(rows[-1])
         try:
-            wallet_id = rows[-1][1]
-            sender_mobile_number = rows[-1][2]
-            amount = rows[-1][3]
-            currncy_type = rows[-1][4]
+            wallet_id = rows[-1][0]
+            sender_mobile_number = rows[-1][7]
+            amount = rows[-1][4]
+            currncy_type = rows[-1][2]
 
             receiver_numbers = []
             wallet_ids = []
             wallet_amount = []
             for i in rows:
-                receiver_numbers.append(i[2])
-                wallet_ids.append(i[1])
-                wallet_amount.append(i[3])
+                receiver_numbers.append(i[7])
+                wallet_ids.append(i[0])
+                wallet_amount.append(i[4])
             index = 0
             if wallet_id and sender_mobile_number:
                 request.data['wallet_id'] = wallet_id
@@ -95,12 +95,12 @@ class TransactionViewSet(viewsets.ModelViewSet):
                     print(wallet_ids[index], credit_amount)
                     with connection.cursor() as cursor:
                             cursor.execute(
-                                "UPDATE wallet_table SET amount = %s WHERE wallet_id = %s",
+                                "UPDATE currency_converter_fiatwallet SET fiat_wallet_balance = %s WHERE fiat_wallet_id = %s",
                                 [deducted_amount, wallet_id]
                             )
                     with connection.cursor() as cursor:
                             cursor.execute(
-                                "UPDATE wallet_table SET amount = %s WHERE wallet_id = %s",
+                                "UPDATE currency_converter_fiatwallet SET fiat_wallet_balance = %s WHERE fiat_wallet_id = %s",
                                 [credit_amount, wallet_ids[index]]
                             )
                     return super().create(request, *args, **kwargs) 
@@ -119,34 +119,34 @@ class QRViewSet(viewsets.ModelViewSet):
     queryset = TransactionTable.objects.all()
     serializer_class = TransactionSerializer
     with connection.cursor() as cursor:
-        cursor.execute("SELECT * FROM wallet_table")
+        cursor.execute("SELECT * FROM currency_converter_fiatwallet")
         rows = cursor.fetchall()
 
     receiver_numbers = []
     wallet_ids = []
     for i in rows:
-        receiver_numbers.append(i[2])
-        wallet_ids.append(i[1])
+        receiver_numbers.append(i[7])
+        wallet_ids.append(i[0])
     print(wallet_ids)
 
     def create(self, request, *args, **kwargs):
         with connection.cursor() as cursor:
-            cursor.execute("SELECT * FROM wallet_table")
+            cursor.execute("SELECT * FROM currency_converter_fiatwallet")
             rows = cursor.fetchall()
         print(rows[-1])
         try:
-            wallet_id = rows[-1][1]
-            sender_mobile_number = rows[-1][2]
-            amount = rows[-1][3]
-            currncy_type = rows[-1][4]
+            wallet_id = rows[-1][0]
+            sender_mobile_number = rows[-1][7]
+            amount = rows[-1][4]
+            currncy_type = rows[-1][2]
 
             receiver_numbers = []
             wallet_ids = []
             wallet_amount = []
             for i in rows:
-                receiver_numbers.append(i[2])
-                wallet_ids.append(i[1])
-                wallet_amount.append(i[3])
+                receiver_numbers.append(i[7])
+                wallet_ids.append(i[0])
+                wallet_amount.append(i[4])
             index = 0
             if wallet_id and sender_mobile_number:
                 request.data['wallet_id'] = wallet_id
@@ -169,12 +169,12 @@ class QRViewSet(viewsets.ModelViewSet):
                     print(wallet_ids[index], credit_amount)
                     with connection.cursor() as cursor:
                             cursor.execute(
-                                "UPDATE wallet_table SET amount = %s WHERE wallet_id = %s",
+                                "UPDATE currency_converter_fiatwallet SET fiat_wallet_balance = %s WHERE fiat_wallet_id = %s",
                                 [deducted_amount, wallet_id]
                             )
                     with connection.cursor() as cursor:
                             cursor.execute(
-                                "UPDATE wallet_table SET amount = %s WHERE wallet_id = %s",
+                                "UPDATE currency_converter_fiatwallet SET fiat_wallet_balance = %s WHERE fiat_wallet_id = %s",
                                 [credit_amount, wallet_ids[index]]
                             )
                     return super().create(request, *args, **kwargs) 
@@ -190,7 +190,6 @@ class QRViewSet(viewsets.ModelViewSet):
 
 
 
-        
 class FiatAddressViewSet(viewsets.ModelViewSet):
     queryset = TransactionTable.objects.all()
     serializer_class = TransactionSerializer
@@ -198,10 +197,11 @@ class FiatAddressViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         fiat_address = request.data.get('fiat_address')
         transaction_amount = float(request.data.get('transaction_amount'))
+        transaction_currency = request.data.get('transaction_currency')
 
         # Fetch wallet info based on fiat address
         with connection.cursor() as cursor:
-            cursor.execute("SELECT * FROM wallet_table WHERE fiat_address = %s", [fiat_address])
+            cursor.execute("SELECT * FROM currency_converter_fiatwallet WHERE fiat_wallet_address = %s", [fiat_address])
             rows = cursor.fetchall()
 
         if not rows:
@@ -210,19 +210,24 @@ class FiatAddressViewSet(viewsets.ModelViewSet):
         try:
             # Process the wallet associated with the fiat address
             wallet_row = rows[0]  # Assuming there's only one row for the fiat address
-            wallet_id = wallet_row[1]  # Wallet ID is in column 1
-            wallet_amount = float(wallet_row[3])  # Ensure this column exists and holds the wallet amount
+            wallet_id = wallet_row[0]  # Wallet ID is in column 1
+            wallet_amount = float(wallet_row[4])  # Ensure this column exists and holds the wallet amount
+            wallet_currency = wallet_row[2]  # Currency type is in column 4 (adjust if necessary)
+
+            # Currency validation
+            if wallet_currency != transaction_currency:
+                return JsonResponse({'status': 'currency_failure', 'message': 'Currency must be the same.'})
 
             # Fetch the last row of the wallet table
             with connection.cursor() as cursor:
-                cursor.execute("SELECT * FROM wallet_table ORDER BY wallet_id DESC LIMIT 1")
+                cursor.execute("SELECT * FROM currency_converter_fiatwallet ORDER BY fiat_wallet_id DESC LIMIT 1")
                 last_row = cursor.fetchone()
 
             if not last_row:
                 return JsonResponse({'status': 'failure', 'message': 'No wallet records found.'})
 
-            last_wallet_id = last_row[1]  # Wallet ID in the last row
-            last_wallet_amount = float(last_row[3])  # Amount in the last row
+            last_wallet_id = last_row[0]  # Wallet ID in the last row
+            last_wallet_amount = float(last_row[4])  # Amount in the last row
 
             # Validate if transaction amount is less than or equal to the last wallet amount
             if transaction_amount > last_wallet_amount:
@@ -232,7 +237,7 @@ class FiatAddressViewSet(viewsets.ModelViewSet):
             updated_wallet_amount = wallet_amount + transaction_amount
             with connection.cursor() as cursor:
                 cursor.execute(
-                    "UPDATE wallet_table SET amount = %s WHERE wallet_id = %s",
+                    "UPDATE currency_converter_fiatwallet SET fiat_wallet_balance = %s WHERE fiat_wallet_id = %s",
                     [updated_wallet_amount, wallet_id]
                 )
 
@@ -240,7 +245,7 @@ class FiatAddressViewSet(viewsets.ModelViewSet):
             updated_last_wallet_amount = last_wallet_amount - transaction_amount
             with connection.cursor() as cursor:
                 cursor.execute(
-                    "UPDATE wallet_table SET amount = %s WHERE wallet_id = %s",
+                    "UPDATE currency_converter_fiatwallet SET fiat_wallet_balance = %s WHERE fiat_wallet_id = %s",
                     [updated_last_wallet_amount, last_wallet_id]
                 )
 

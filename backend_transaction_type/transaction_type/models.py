@@ -93,14 +93,14 @@ class TransactionTable(models.Model):
     
     def wallet_id_fetch(self):
         with connection.cursor() as cursor:
-            cursor.execute("SELECT * FROM wallet_table")
+            cursor.execute("SELECT * FROM currency_converter_fiatwallet")
             rows = cursor.fetchall()
-        print(rows[-1][1])
-        return rows[-1][1]
+        print(rows[-1][0])
+        return rows[-1][0]
     def sender_mobile_number_fetch(self):
         with connection.cursor() as cursor:
-            cursor.execute("SELECT * FROM wallet_table")
+            cursor.execute("SELECT * FROM currency_converter_fiatwallet")
             rows = cursor.fetchall()
-        print(rows[-1][2])
-        return rows[-1][2]
+        print(rows[-1][7])
+        return rows[-1][7]
 
