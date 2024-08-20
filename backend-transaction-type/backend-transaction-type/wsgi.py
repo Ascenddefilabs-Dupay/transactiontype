@@ -1,5 +1,5 @@
 """
-WSGI config for backend_transaction_type project.
+WSGI config for backend-transaction-type project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend_transaction_type.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend-transaction-type.settings')
 
 application = get_wsgi_application()
