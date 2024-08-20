@@ -48,3 +48,22 @@
   text-align: center;
   margin: 20px;
 }
+
+.customAlert {
+  position: fixed;
+  top: 30%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: gray;
+  color: white;
+  padding: 10px;
+  border-radius: 10px;
+  z-index: 1000;
+  width: 45%;
+  max-width: 245px;
+  text-align: center;
+}
+
+.customAlert p {
+  margin: 0 0 15px;
+}

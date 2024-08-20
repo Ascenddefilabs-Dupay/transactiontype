@@ -11,6 +11,17 @@ const QRScanner = () => {
   const [mobileNumber, setMobileNumber] = useState('');
   const [amount, setAmount] = useState('');
   const [message, setMessage] = useState('');
+  const [currency, setCurrency] = useState('');
+  const [alertMessage, setAlertMessage] = useState(''); 
+
+  const currencies = [
+    { code: 'USD', name: 'United States Dollar' },
+    { code: 'GBP', name: 'British Pound' },
+    { code: 'EUR', name: 'Euro' },
+    { code: 'INR', name: 'Indian Rupee' },
+    { code: 'JPY', name: 'Japanese Yen' },
+    // Add more currencies as needed
+  ];
 
   const handleClick = () => {
     setScanning(true);
@@ -26,36 +37,47 @@ const QRScanner = () => {
 
   const handleSubmit = async e => {
     e.preventDefault();
+
+    if (!currency) {
+      setAlertMessage('Select a valid currency');
+      return;
+    }
+    
     // Handle form submission logic
     const transactionHash = uuidv4();
     try {
       const response = await axios.post('http://localhost:8000/api/qrcode/', {
         transaction_type: 'Debit', // Default value
         transaction_amount: amount,
-        transaction_currency: "IND",
+        transaction_currency: currency,
         transaction_status: 'Success', // Default value
         transaction_fee: 0.0, // Default value
         user_phone_number: mobileNumber, // Use extracted mobile number
         transaction_hash: transactionHash, // Include the unique hash
       });
       if (response.data.status === 'failure'){
-        alert('Transaction Failure!');
+        setAlertMessage('Transaction Failure!');
       }else if (response.data.status === 'mobile_failure'){
-        alert("Number is not valid")
-      }else if (response.data.status === 'currency_failure'){
-        alert("Curresncy type must be Same")
+        setAlertMessage("Number is not valid")
+      }else if (response.data.status === 'insufficient_funds'){
+        setAlertMessage("Insufficient Amount")
+      }else if (response.data.status === 'curreny_error'){
+        setAlertMessage('User Does not have Currency')
       }else {
-        alert('Transaction successful!');
+        setAlertMessage('Transaction successful!');
       }
       console.log('Transaction successful:', response.data);
       
       setAmount('');
+      setCurrency('');
     } catch (error) {
       setMessage(error.response ? error.response.data.detail : 'Error submitting transaction');
       console.error('Error submitting transaction:', error.response ? error.response.data : error.message);
     }
-    // 
-    // alert(`Amount ${amount} to be paid for ${mobileNumber}`);
+  };
+
+  const handleCloseAlert = () => {
+    setAlertMessage('');
   };
 
   const extractMobileNumber = data => {
@@ -67,6 +89,12 @@ const QRScanner = () => {
 
   return (
     <div className="qr-scanner-container">
+      {alertMessage && (
+        <div className="customAlert">
+          <p>{alertMessage}</p>
+          <button onClick={handleCloseAlert} className="closeButton">OK</button>
+        </div>
+      )}
       <h1 className='heading'>Pay Through Scanner</h1>
       {scanning ? (
         <div className="scanner-wrapper">
@@ -96,21 +124,41 @@ const QRScanner = () => {
           Scan QR Code
         </button>
       )}
+
       {mobileNumber && (
-        <form onSubmit={handleSubmit} className="amount-form">
-          <label className='amount_label'>
-            Enter Amount:
-          </label>
-          <input
+        <>
+          <div className="currency-form">
+            <label htmlFor="currency">Currency:</label>
+            <select
+              id="currency"
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value)}
+              required
+            >
+              <option value="">Select a currency</option>
+              {currencies.map((currency) => (
+                <option key={currency.code} value={currency.code}>
+                  {currency.name} ({currency.code})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <form onSubmit={handleSubmit} className="amount-form">
+            <label className='amount_label'>
+              Enter Amount:
+            </label>
+            <input
               type="number"
               value={amount}
               onChange={handleAmountChange}
               required
             />
-          <div className='button_class'>
-            <button type="submit">Submit</button>
-          </div>
-        </form>
+            <div className='button_class'>
+              <button type="submit">Transfer</button>
+            </div>
+          </form>
+        </>
       )}
     </div>
   );

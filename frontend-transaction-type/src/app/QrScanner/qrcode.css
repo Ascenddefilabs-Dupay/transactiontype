@@ -1,78 +1,147 @@
 .qr-scanner-container {
-    max-width: 400px;
-    margin: 50px auto;
-    padding: 25px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    text-align: center;
-    background-color: black;
+  max-width: 400px;
+  margin: 50px auto;
+  padding: 25px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  text-align: center;
+  background-color: black;
 
-  }
-  
-  .scan-button,
-  .cancel-button {
-    padding: 10px 20px;
-    font-size: 16px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    margin: 10px;
-  }
-  
-  .scan-button {
-    background-color: #4caf50;
-    color: white;
-  }
-  
-  .cancel-button {
-    background-color: #f44336;
-    color: white;
-  }
-  
-  .scanner-wrapper {
-    position: relative;
-    display: inline-block;
-    height: 300px;
-    width: 300px;
-  }
-  
-  .amount-form {
-    margin-top: 20px;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .amount-form label {
-    display: block;
-    margin-bottom: 10px;
-  }
-  
-  .amount-form input {
-    padding: 5px;
-    color: black;
-    margin-bottom: 20x;
-  }
-  
-  .amount-form button {
-    padding: 10px 20px;
-    font-size: 16px;
-    border: none;
-    border-radius: 5px;
-    background-color: #2196f3;
-    color: white;
-    cursor: pointer;
-    margin-top: 20x;
-  }
-  .heading{
-    color: white;
-    font-weight: bold;
-  }
+}
 
-  .amount_label{
-    color: white;
-    text-align: left;
-  }
+.scan-button,
+.cancel-button {
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 10px;
+}
 
-  .button_class{
-    margin-top: 10px;
-  }
+.scan-button {
+  background-color: #4caf50;
+  color: white;
+}
+
+.cancel-button {
+  background-color: #f44336;
+  color: white;
+}
+
+.scanner-wrapper {
+  position: relative;
+  display: inline-block;
+  height: 300px;
+  width: 300px;
+}
+
+.amount-form {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.amount-form label {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.amount-form input {
+  padding: 5px;
+  color: black;
+  margin-bottom: 20x;
+}
+
+.amount-form button {
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  background-color: #2196f3;
+  color: white;
+  cursor: pointer;
+  margin-top: 20x;
+}
+.heading{
+  color: white;
+  font-weight: bold;
+}
+
+.amount_label{
+  color: white;
+  text-align: left;
+}
+
+.button_class{
+  margin-top: 10px;
+}
+
+.currency-form {
+  margin: 0 auto;
+  border: 1px solid black;
+  border-radius: 5px;
+  background-color: black;
+  display: flex;
+  flex-direction: column;
+}
+
+.currency-form .form-group {
+  margin-bottom: 15px;
+}
+
+.currency-form label {
+  display: block;
+  margin-bottom: 5px;
+  color: white;
+  text-align: left;
+}
+
+.currency-form input,
+.currency-form select {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  border: 1px solid black;
+  border-radius: 5px;
+  box-sizing: border-box;
+  color: black;
+}
+
+.currency-form button {
+  width: 100%;
+  padding: 10px;
+  background-color: #007bff;
+  color: black;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.currency-form button:hover {
+  background-color: #0056b3;
+}
+.center-label{
+  text-align: center;
+  margin: 20px;
+}
+
+.customAlert {
+  position: fixed;
+  top: 30%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: gray;
+  color: white;
+  padding: 10px;
+  border-radius: 10px;
+  z-index: 1000;
+  width: 45%;
+  max-width: 245px;
+  text-align: center;
+}
+
+.customAlert p {
+  margin: 0 0 15px;
+}
