@@ -9,11 +9,11 @@
 
 html, body {
   height: 100%;
-  font-family: Arial, sans-serif;
+  font-family: Arial, Helvetica, sans-serif;
+  
 }
 
 body {
-  background-color: #fff;
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -21,8 +21,8 @@ body {
 }
 
 .address-based-transaction-form-container {
-  width: 100%;
-  max-width: 400px;
+  width:320px;
+  height: 550px;
 }
 
 .address-based-transaction-form {
@@ -30,14 +30,16 @@ body {
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.5);
+  height: 550px;
 }
 
 .form-heading {
   text-align: center;
   font-size: 20px;
   color: #000;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   color: white;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 .form-group {
@@ -48,6 +50,7 @@ label {
   color: #fff;
   display: block;
   margin-bottom: 5px;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 input,
@@ -56,11 +59,12 @@ select {
   padding: 10px;
   border-radius: 4px;
   border: 1px solid #ccc;
-  background-color: rgba(128, 128, 128, 0.253);
-  color: white;
+  background-color: white;
+  color: black;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
-button {
+.button_class {
   width: 100%;
   padding: 10px;
   background-color: #0066cc;
@@ -69,6 +73,9 @@ button {
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s;
+  background: linear-gradient(90deg, #007bff9f, #800080);
+  font-family: Arial, Helvetica, sans-serif;
+  margin-top: 10px;
 }
 
 button:hover {
@@ -106,6 +113,7 @@ select option {
 
 .customAlert p {
   margin: 0 0 15px;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 .closeButton {
@@ -117,4 +125,15 @@ select option {
   color: black;
   font-weight: bold;
   width: 30%;
+}
+
+.setting_back_icon {
+  margin-right: 20px; 
+  color: #fff; 
+  font-size: 26px; 
+}
+.back_container{
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 20px;
 }

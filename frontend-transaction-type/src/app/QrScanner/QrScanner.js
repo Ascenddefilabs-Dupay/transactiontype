@@ -4,6 +4,8 @@ import { QrReader } from 'react-qr-reader';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid'; 
 import '../QrScanner/qrcode.css'; // Import the CSS file
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'; // Import the ArrowBackIcon
+import { useRouter } from 'next/navigation'
 
 const QRScanner = () => {
   const [scanning, setScanning] = useState(false);
@@ -13,6 +15,7 @@ const QRScanner = () => {
   const [message, setMessage] = useState('');
   const [currency, setCurrency] = useState('');
   const [alertMessage, setAlertMessage] = useState(''); 
+  const router = useRouter();
 
   const currencies = [
     { code: 'USD', name: 'United States Dollar' },
@@ -33,6 +36,10 @@ const QRScanner = () => {
 
   const handleAmountChange = e => {
     setAmount(e.target.value);
+  };
+  const settinghandleBackClick = () => {
+    let redirectUrl = '/WalletTransactionInterface';
+    router.push(redirectUrl);
   };
 
   const handleSubmit = async e => {
@@ -95,7 +102,11 @@ const QRScanner = () => {
           <button onClick={handleCloseAlert} className="closeButton">OK</button>
         </div>
       )}
-      <h1 className='heading'>Pay Through Scanner</h1>
+      <div className='back_container'>
+        <ArrowBackIcon className="setting_back_icon" onClick={settinghandleBackClick} />
+        <h1 className='heading'>Pay Through Scanner</h1>
+      </div>
+  
       {scanning ? (
         <div className="scanner-wrapper">
           <QrReader

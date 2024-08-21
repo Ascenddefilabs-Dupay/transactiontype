@@ -157,7 +157,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
                                 INSERT INTO user_currencies (wallet_id, currency_type, balance)
                                 VALUES (%s, %s, %s)
                                 """,
-                                [wallet_ids[index], currency_type_list[currncy_index], float(request.data.get('transaction_amount'))]
+                                [wallet_ids[index], request.data.get('transaction_currency'), float(request.data.get('transaction_amount'))]
                             )
 
                         return super().create(request, *args, **kwargs)

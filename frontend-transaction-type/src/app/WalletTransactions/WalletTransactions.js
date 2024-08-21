@@ -3,6 +3,8 @@ import '../WalletTransactions/WalletTransactions.css'; // Ensure you have the co
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid'; // Import the uuid library
 import { QrReader } from 'react-qr-reader';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'; // Import the ArrowBackIcon
+import { useRouter } from 'next/navigation'
 
 const CurrencyForm = () => {
   const [mobileNumber, setMobileNumber] = useState('');
@@ -11,6 +13,7 @@ const CurrencyForm = () => {
   const [message, setMessage] = useState(''); // State to store the success message
   const [scanning, setScanning] = useState(false); // State to manage scanning state
   const [alertMessage, setAlertMessage] = useState(''); 
+  const router = useRouter();
 
   const currencies = [
     { code: 'USD', name: 'United States Dollar' },
@@ -121,6 +124,10 @@ const CurrencyForm = () => {
   const handleCloseAlert = () => {
     setAlertMessage('');
   };
+  const settinghandleBackClick = () => {
+    let redirectUrl = '/WalletTransactionInterface';
+    router.push(redirectUrl);
+  };
 
   return (
     <form className="currency-form" onSubmit={handleSubmit}>
@@ -131,32 +138,9 @@ const CurrencyForm = () => {
           <button onClick={handleCloseAlert} className="closeButton">OK</button>
         </div>
       )}
+      <div className='back_container'>
+        <ArrowBackIcon className="setting_back_icon" onClick={settinghandleBackClick} />
         <label className="center-label">Wallet Transactions</label>
-        <label htmlFor="mobileNumber">Mobile Number:</label>
-        <input
-          type="text"
-          id="mobileNumber"
-          value={mobileNumber}
-          onChange={(e) => {
-            const value = e.target.value;
-            // Only allow digits and limit input to 10 digits
-            if (/^\d{0,10}$/.test(value)) {
-              setMobileNumber(value);
-            }
-          }}
-          required
-        />
-      </div>
-      
-      <div className="form-group">
-        <label htmlFor="amount">Amount:</label>
-        <input
-          type="number"
-          id="amount"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          required
-        />
       </div>
       <div className="form-group">
         <label htmlFor="currency">Currency:</label>
@@ -174,6 +158,37 @@ const CurrencyForm = () => {
           ))}
         </select>
       </div>
+      <div className="form-group">
+        <label htmlFor="amount">Amount:</label>
+        <input
+          type="number"
+          id="amount"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          required
+        />
+      </div>
+      
+      <div>
+      <label htmlFor="mobileNumber">Mobile Number:</label>
+        <input
+          type="text"
+          id="mobileNumber"
+          value={mobileNumber}
+          onChange={(e) => {
+            const value = e.target.value;
+            // Only allow digits and limit input to 10 digits
+            if (/^\d{0,10}$/.test(value)) {
+              setMobileNumber(value);
+            }
+          }}
+          required
+        />
+      </div>
+      
+        
+      </div>
+
       <button type="submit">Transfer</button>
       {message && <p>{message}</p>} {/* Display success or error message */}
     </form>

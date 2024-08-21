@@ -36,7 +36,7 @@ const WalletTransaction = () => {
           <option value="walletAddress">Through Wallet Address</option>
         </select>
       </div>
-      <button onClick={handleNextClick} disabled={!paymentMethod}>
+      <button onClick={handleNextClick} disabled={!paymentMethod} className='button_class'>
         Next
       </button>
     </div>

@@ -1,11 +1,12 @@
 /* src/CurrencyForm.css */
 .currency-form {
-  max-width: 320px;
+  width: 320px;
   margin: 0 auto;
   padding: 20px;
   border: 1px solid black;
   border-radius: 5px;
   background-color: black;
+  height: 550px;
 }
 
 .currency-form .form-group {
@@ -15,8 +16,8 @@
 .currency-form label {
   display: block;
   margin-bottom: 5px;
-  font-weight: bold;
   color: white;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 .currency-form input,
@@ -28,25 +29,31 @@
   border-radius: 5px;
   box-sizing: border-box;
   color: black;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 .currency-form button {
   width: 100%;
   padding: 10px;
   background-color: #007bff;
-  color: black;
+  color: white;
   border: none;
   border-radius: 5px;
   cursor: pointer;
   font-size: 16px;
+  font-family: Arial, Helvetica, sans-serif;
+  background: linear-gradient(90deg, #007bff9f, #800080);
+  margin-top: 15px;
 }
 
 .currency-form button:hover {
-  background-color: #0056b3;
+  background-color: #007bff;
 }
 .center-label{
   text-align: center;
-  margin: 20px;
+  margin-left: 30px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: bold;
 }
 
 .customAlert {
@@ -62,8 +69,32 @@
   width: 45%;
   max-width: 245px;
   text-align: center;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 .customAlert p {
   margin: 0 0 15px;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.closeButton button {
+  background-color: #f0f0f0;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  color: black;
+  font-weight: bold;
+  width: 30%;
+}
+
+.setting_back_icon {
+  margin-right: 10px; 
+  color: #fff; 
+  font-size: 26px; 
+}
+.back_container{
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 20px;
 }
