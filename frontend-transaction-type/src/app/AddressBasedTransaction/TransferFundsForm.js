@@ -213,6 +213,7 @@ const AddressBasedTransactionForm = () => {
 
   const handleCloseAlert = () => {
     setAlertMessage('');
+    window.location.href = 'http://localhost:3003/Dashboard';
   };
 
   const settinghandleBackClick = () => {

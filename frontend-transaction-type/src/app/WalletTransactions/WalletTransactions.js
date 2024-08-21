@@ -123,6 +123,7 @@ const CurrencyForm = () => {
 
   const handleCloseAlert = () => {
     setAlertMessage('');
+    window.location.href = 'http://localhost:3003/Dashboard';
   };
   const settinghandleBackClick = () => {
     let redirectUrl = '/WalletTransactionInterface';
