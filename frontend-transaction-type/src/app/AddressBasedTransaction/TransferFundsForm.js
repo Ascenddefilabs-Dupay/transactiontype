@@ -133,6 +133,8 @@ import { v4 as uuidv4 } from 'uuid';
 import React, { useState } from 'react';
 import axios from 'axios';
 import './AddressBasedTransactionForm.css'; // Ensure the path to your CSS file is correct
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'; // Import the ArrowBackIcon
+import { useRouter } from 'next/navigation'
 
 const AddressBasedTransactionForm = () => {
   const [transactionAmount, setTransactionAmount] = useState('');
@@ -140,6 +142,7 @@ const AddressBasedTransactionForm = () => {
   const [fiatAddress, setFiatAddress] = useState('');
   const [alertMessage, setAlertMessage] = useState(''); // State for alert message
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const currencies = [
     { code: 'USD', name: 'United States Dollar' },
@@ -212,6 +215,11 @@ const AddressBasedTransactionForm = () => {
     setAlertMessage('');
   };
 
+  const settinghandleBackClick = () => {
+    let redirectUrl = '/WalletTransactionInterface';
+    router.push(redirectUrl);
+  };
+
   return (
     <div className="address-based-transaction-form-container">
       {alertMessage && (
@@ -221,7 +229,11 @@ const AddressBasedTransactionForm = () => {
         </div>
       )}
       <form className="address-based-transaction-form" onSubmit={handleSubmit}>
-        <h2 className="form-heading">Fiat Wallet Transaction</h2>
+        <div className='back_container'>
+           <ArrowBackIcon className="setting_back_icon" onClick={settinghandleBackClick} />
+           <h2 className="form-heading">Fiat Wallet Transaction</h2>
+        </div>
+        
         <div className="form-group">
           <label htmlFor="transactionCurrency">Currency:</label>
           <select
@@ -258,7 +270,7 @@ const AddressBasedTransactionForm = () => {
             required
           />
         </div>
-        <button type="submit" disabled={loading}>
+        <button type="submit" disabled={loading} className='button_class'>
           {loading ? 'Processing...' : 'Transfer'}
         </button>
       </form>
