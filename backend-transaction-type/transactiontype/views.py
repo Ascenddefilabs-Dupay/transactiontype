@@ -59,6 +59,19 @@ class TransactionViewSet(viewsets.ModelViewSet):
         with connection.cursor() as cursor:
             cursor.execute("SELECT * FROM currency_converter_fiatwallet")
             rows = cursor.fetchall()
+
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM user_currencies")
+            currency_rows = cursor.fetchall()
+        
+        currency_wallet_id = []
+        currency_type_list = []
+        balance = []
+        for i in currency_rows:
+            currency_wallet_id.append(i[1])
+            currency_type_list.append(i[2])
+            balance.append(i[3])
+
         print(rows[-1])
         try:
             wallet_id = rows[-1][0]
@@ -85,25 +98,71 @@ class TransactionViewSet(viewsets.ModelViewSet):
             if request.data['user_phone_number'] not in receiver_numbers:
                 print(request.data['user_phone_number'])
                 return JsonResponse({'status': 'mobile_failure', 'message': 'Mobile Number Failure'})
-            elif currncy_type != request.data['transaction_currency']:
-                return JsonResponse({'status': 'currency_failure', 'message': 'Currency must be same'})
-            
+        
             else:
-                if float(request.data.get('transaction_amount')) < float(amount):
-                    deducted_amount = float(amount) - float(request.data.get('transaction_amount'))
-                    credit_amount = float(wallet_amount[index]) + float(request.data.get('transaction_amount'))
-                    print(wallet_ids[index], credit_amount)
-                    with connection.cursor() as cursor:
+                user_currency_id_list = []
+                a = -1
+                reciever_wallet_amont = []
+                validation_list = []
+                for i in currency_wallet_id:
+                    a += 1
+                    if wallet_ids[index] == currency_wallet_id[a] and request.data.get('transaction_currency') == currency_type_list[a]:
+                        print(a)
+                        user_currency_id_list.append(currency_type_list[a])
+                        reciever_wallet_amont.append(balance[a])
+                        
+                    if wallet_id == currency_wallet_id[a] and request.data.get('transaction_currency') == currency_type_list[a]:
+                        print(a)
+                        validation_list.append(currency_type_list[a])
+
+                print(user_currency_id_list, reciever_wallet_amont)
+
+                if wallet_id in currency_wallet_id and wallet_ids[index] in currency_wallet_id:
+                    currncy_index = currency_wallet_id.index(wallet_id)
+                    if request.data.get('transaction_currency') in set(user_currency_id_list) and wallet_ids[index] in currency_wallet_id:
+                        currncy_index1 = currency_wallet_id.index(wallet_ids[index])
+
+                    
+                    if len(validation_list) == 0:
+                        return JsonResponse({'status': 'curreny_error', 'message': 'Payment Failure'}) 
+
+
+                    if float(request.data.get('transaction_amount')) <= float(balance[currncy_index]) and len(user_currency_id_list) >= 1:
+                        deducted_amount = float(balance[currncy_index]) - float(request.data.get('transaction_amount'))
+                        credit_amount = float(reciever_wallet_amont[0]) + float(request.data.get('transaction_amount'))
+                        print(wallet_ids[index], credit_amount, deducted_amount)
+                        with connection.cursor() as cursor:
                             cursor.execute(
-                                "UPDATE currency_converter_fiatwallet SET fiat_wallet_balance = %s WHERE fiat_wallet_id = %s",
-                                [deducted_amount, wallet_id]
+                                "UPDATE user_currencies SET balance = %s WHERE wallet_id = %s",
+                                [deducted_amount, currency_wallet_id[currncy_index]]
                             )
-                    with connection.cursor() as cursor:
+                        with connection.cursor() as cursor:
                             cursor.execute(
-                                "UPDATE currency_converter_fiatwallet SET fiat_wallet_balance = %s WHERE fiat_wallet_id = %s",
-                                [credit_amount, wallet_ids[index]]
+                                "UPDATE user_currencies SET balance = %s WHERE wallet_id = %s AND currency_type = %s",
+                                [credit_amount, currency_wallet_id[currncy_index1], request.data.get('transaction_currency')]
                             )
-                    return super().create(request, *args, **kwargs) 
+                        return super().create(request, *args, **kwargs) 
+                    elif float(request.data.get('transaction_amount')) <= float(balance[currncy_index]) and len(user_currency_id_list) < 1 :
+                        deducted_amount = float(balance[currncy_index]) - float(request.data.get('transaction_amount'))
+                        credit_amount = float(request.data.get('transaction_amount'))
+                        print(wallet_ids[index], credit_amount, deducted_amount)
+                        with connection.cursor() as cursor:
+                            cursor.execute(
+                                "UPDATE user_currencies SET balance = %s WHERE wallet_id = %s",
+                                [deducted_amount, currency_wallet_id[currncy_index]]
+                            )
+                        with connection.cursor() as cursor:
+                            cursor.execute(
+                                """
+                                INSERT INTO user_currencies (wallet_id, currency_type, balance)
+                                VALUES (%s, %s, %s)
+                                """,
+                                [wallet_ids[index], currency_type_list[currncy_index], float(request.data.get('transaction_amount'))]
+                            )
+
+                        return super().create(request, *args, **kwargs)
+                    else:
+                       return JsonResponse({'status': 'insufficient_funds', 'message': 'Payment Failure'}) 
                 else:
                     return JsonResponse({'status': 'failure', 'message': 'Payment Failure'})
 
@@ -133,6 +192,19 @@ class QRViewSet(viewsets.ModelViewSet):
         with connection.cursor() as cursor:
             cursor.execute("SELECT * FROM currency_converter_fiatwallet")
             rows = cursor.fetchall()
+
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM user_currencies")
+            currency_rows = cursor.fetchall()
+        
+        currency_wallet_id = []
+        currency_type_list = []
+        balance = []
+        for i in currency_rows:
+            currency_wallet_id.append(i[1])
+            currency_type_list.append(i[2])
+            balance.append(i[3])
+            
         print(rows[-1])
         try:
             wallet_id = rows[-1][0]
@@ -159,25 +231,74 @@ class QRViewSet(viewsets.ModelViewSet):
             if request.data['user_phone_number'] not in receiver_numbers:
                 print(request.data['user_phone_number'])
                 return JsonResponse({'status': 'mobile_failure', 'message': 'Mobile Number Failure'})
-            elif currncy_type != request.data['transaction_currency']:
-                return JsonResponse({'status': 'currency_failure', 'message': 'Currency must be same'})
             
             else:
-                if float(request.data.get('transaction_amount')) < float(amount):
-                    deducted_amount = float(amount) - float(request.data.get('transaction_amount'))
-                    credit_amount = float(wallet_amount[index]) + float(request.data.get('transaction_amount'))
-                    print(wallet_ids[index], credit_amount)
-                    with connection.cursor() as cursor:
+                user_currency_id_list = []
+                a = -1
+                reciever_wallet_amont = []
+                validation_list = []
+                for i in currency_wallet_id:
+                    a += 1
+                    if wallet_ids[index] == currency_wallet_id[a] and request.data.get('transaction_currency') == currency_type_list[a]:
+                        print(a)
+                        user_currency_id_list.append(currency_type_list[a])
+                        reciever_wallet_amont.append(balance[a])
+                        
+                    if wallet_id == currency_wallet_id[a] and request.data.get('transaction_currency') == currency_type_list[a]:
+                        print(a)
+                        validation_list.append(currency_type_list[a])
+                        
+
+                        
+
+                print(user_currency_id_list, reciever_wallet_amont)
+
+                if wallet_id in currency_wallet_id and wallet_ids[index] in currency_wallet_id:
+                    currncy_index = currency_wallet_id.index(wallet_id)
+                    if request.data.get('transaction_currency') in set(user_currency_id_list) and wallet_ids[index] in currency_wallet_id:
+                        currncy_index1 = currency_wallet_id.index(wallet_ids[index])
+
+                    
+                    if len(validation_list) == 0:
+                        return JsonResponse({'status': 'curreny_error', 'message': 'Payment Failure'}) 
+
+
+                    if float(request.data.get('transaction_amount')) <= float(balance[currncy_index]) and len(user_currency_id_list) >= 1:
+                        deducted_amount = float(balance[currncy_index]) - float(request.data.get('transaction_amount'))
+                        credit_amount = float(reciever_wallet_amont[0]) + float(request.data.get('transaction_amount'))
+                        print(wallet_ids[index], credit_amount, deducted_amount)
+                        with connection.cursor() as cursor:
                             cursor.execute(
-                                "UPDATE currency_converter_fiatwallet SET fiat_wallet_balance = %s WHERE fiat_wallet_id = %s",
-                                [deducted_amount, wallet_id]
+                                "UPDATE user_currencies SET balance = %s WHERE wallet_id = %s",
+                                [deducted_amount, currency_wallet_id[currncy_index]]
                             )
-                    with connection.cursor() as cursor:
+                        with connection.cursor() as cursor:
                             cursor.execute(
-                                "UPDATE currency_converter_fiatwallet SET fiat_wallet_balance = %s WHERE fiat_wallet_id = %s",
-                                [credit_amount, wallet_ids[index]]
+                                "UPDATE user_currencies SET balance = %s WHERE wallet_id = %s AND currency_type = %s",
+                                [credit_amount, currency_wallet_id[currncy_index1], request.data.get('transaction_currency')]
                             )
-                    return super().create(request, *args, **kwargs) 
+                        return super().create(request, *args, **kwargs) 
+                    elif float(request.data.get('transaction_amount')) <= float(balance[currncy_index]) and len(user_currency_id_list) < 1 :
+                        deducted_amount = float(balance[currncy_index]) - float(request.data.get('transaction_amount'))
+                        credit_amount = float(request.data.get('transaction_amount'))
+                        print(wallet_ids[index], credit_amount, deducted_amount)
+                        with connection.cursor() as cursor:
+                            cursor.execute(
+                                "UPDATE user_currencies SET balance = %s WHERE wallet_id = %s",
+                                [deducted_amount, currency_wallet_id[currncy_index]]
+                            )
+                        with connection.cursor() as cursor:
+                            cursor.execute(
+                                """
+                                INSERT INTO user_currencies (wallet_id, currency_type, balance)
+                                VALUES (%s, %s, %s)
+                                """,
+                                [wallet_ids[index], currency_type_list[currncy_index], float(request.data.get('transaction_amount'))]
+                            )
+
+                        return super().create(request, *args, **kwargs)
+                    else:
+                       return JsonResponse({'status': 'insufficient_funds', 'message': 'Payment Failure'}) 
                 else:
                     return JsonResponse({'status': 'failure', 'message': 'Payment Failure'})
 
@@ -227,7 +348,7 @@ class FiatAddressViewSet(viewsets.ModelViewSet):
                 currency_balance = cursor.fetchone()
 
             if not currency_balance:
-                return JsonResponse({'status': 'failure', 'message': 'Selected currency not found in the wallet.'})
+                return JsonResponse({'status': 'currency_failuregi', 'message': 'Selected currency not found in the wallet.'})
 
             current_balance = float(currency_balance[0])
 

@@ -190,7 +190,7 @@ const AddressBasedTransactionForm = () => {
       if (response.data.status === 'address_failure') {
         setAlertMessage('Entered fiat address does not exist.');
       } else if (response.data.status === 'currency_failure') {
-        setAlertMessage('Currency must be the same.');
+        setAlertMessage('Selected currency not found in the wallet.');
       } else if (response.data.status === 'failure') {
         setAlertMessage('Insufficient funds for the transaction.');
       } else {

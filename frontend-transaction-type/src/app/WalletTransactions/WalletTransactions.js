@@ -10,6 +10,7 @@ const CurrencyForm = () => {
   const [currency, setCurrency] = useState('');
   const [message, setMessage] = useState(''); // State to store the success message
   const [scanning, setScanning] = useState(false); // State to manage scanning state
+  const [alertMessage, setAlertMessage] = useState(''); 
 
   const currencies = [
     { code: 'USD', name: 'United States Dollar' },
@@ -63,19 +64,19 @@ const CurrencyForm = () => {
     // Validate mobile number
     const mobileRegex = /^[0-9]{10}$/;
     if (!mobileRegex.test(mobileNumber)) {
-      alert('Enter a valid 10-digit mobile number');
+      setAlertMessage('Enter a valid 10-digit mobile number');
       return;
     }
 
     // Validate amount
     if (isNaN(amount) || amount <= 0) {
-      alert('Enter a valid amount');
+      setAlertMessage('Enter a valid amount');
       return;
     }
 
     // Validate currency selection
     if (!currency) {
-      alert('Select a valid currency');
+      setAlertMessage('Select a valid currency');
       return;
     }
 
@@ -94,14 +95,15 @@ const CurrencyForm = () => {
         transaction_hash: transactionHash, // Include the unique hash
       });
       if (response.data.status === 'failure'){
-        alert('Transaction Failure!');
+        setAlertMessage('Transaction Failure!');
       }else if (response.data.status === 'mobile_failure'){
-        alert("Number is not valid")
-      }else if (response.data.status === 'currency_failure'){
-        alert("Curresncy type must be Same")
-      }
-      else {
-        alert('Transaction successful!');
+        setAlertMessage("Number is not valid")
+      }else if (response.data.status === 'insufficient_funds'){
+        setAlertMessage("Insufficient Amount")
+      }else if (response.data.status === 'curreny_error'){
+        setAlertMessage('User Does not have Currency')
+      }else {
+        setAlertMessage('Transaction successful!');
       }
       
       console.log('Transaction successful:', response.data);
@@ -116,9 +118,19 @@ const CurrencyForm = () => {
     }
   };
 
+  const handleCloseAlert = () => {
+    setAlertMessage('');
+  };
+
   return (
     <form className="currency-form" onSubmit={handleSubmit}>
       <div className="form-group">
+      {alertMessage && (
+        <div className="customAlert">
+          <p>{alertMessage}</p>
+          <button onClick={handleCloseAlert} className="closeButton">OK</button>
+        </div>
+      )}
         <label className="center-label">Wallet Transactions</label>
         <label htmlFor="mobileNumber">Mobile Number:</label>
         <input
@@ -162,7 +174,7 @@ const CurrencyForm = () => {
           ))}
         </select>
       </div>
-      <button type="submit">Submit</button>
+      <button type="submit">Transfer</button>
       {message && <p>{message}</p>} {/* Display success or error message */}
     </form>
   );
