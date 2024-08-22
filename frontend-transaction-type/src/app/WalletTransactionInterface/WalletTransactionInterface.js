@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import './WalletTransaction.css'; // Add this for styling
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 const WalletTransaction = () => {
   const [paymentMethod, setPaymentMethod] = useState('');
@@ -20,9 +21,17 @@ const WalletTransaction = () => {
     }
   };
 
+  const handleBackClick = () => {
+    let redirectUrl = '/WalletTransactionInterface';
+    router.push(redirectUrl);
+  };
+
   return (
     <div className="wallet-transaction">
-      <h2>Wallet Transaction</h2>
+      <div className='back_container'>
+        <ArrowBackIcon className="setting_back_icon" onClick={handleBackClick} />
+        <h2 className='wallet-transaction_heading'>Wallet Transaction</h2>
+      </div>
       <div className="form-group">
         <label htmlFor="payment-method">Select Payment Method:</label>
         <select

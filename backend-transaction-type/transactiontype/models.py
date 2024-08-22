@@ -17,13 +17,16 @@ class User(models.Model):
         qr_data = f"{self.name}-{self.mobile_number}"
         qr = qrcode.QRCode(
             version=1,
-            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            error_correction=qrcode.constants.ERROR_CORRECT_H,  # Higher error correction
             box_size=10,
             border=4,
         )
         qr.add_data(qr_data)
         qr.make(fit=True)
-        img = qr.make_image(fill_color="black", back_color="white")
+
+        # Customizing the colors
+        img = qr.make_image(fill_color="black", back_color="lightgrey")
+
         buffer = BytesIO()
         img.save(buffer, format="PNG")
         img_str = base64.b64encode(buffer.getvalue()).decode("utf-8")
