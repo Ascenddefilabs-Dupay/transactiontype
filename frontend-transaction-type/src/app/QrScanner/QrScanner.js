@@ -3,8 +3,8 @@ import React, { useState } from 'react';
 import { QrReader } from 'react-qr-reader';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid'; 
-import '../QrScanner/qrcode.css'; // Import the CSS file
-import ArrowBackIcon from '@mui/icons-material/ArrowBack'; // Import the ArrowBackIcon
+import '../QrScanner/qrcode.css'; 
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useRouter } from 'next/navigation'
 
 const QRScanner = () => {
@@ -12,7 +12,6 @@ const QRScanner = () => {
   const [scannedData, setScannedData] = useState(null);
   const [mobileNumber, setMobileNumber] = useState('');
   const [amount, setAmount] = useState('');
-  const [message, setMessage] = useState('');
   const [currency, setCurrency] = useState('');
   const [alertMessage, setAlertMessage] = useState(''); 
   const router = useRouter();
@@ -23,7 +22,6 @@ const QRScanner = () => {
     { code: 'EUR', name: 'Euro' },
     { code: 'INR', name: 'Indian Rupee' },
     { code: 'JPY', name: 'Japanese Yen' },
-    // Add more currencies as needed
   ];
 
   const handleClick = () => {
@@ -37,7 +35,8 @@ const QRScanner = () => {
   const handleAmountChange = e => {
     setAmount(e.target.value);
   };
-  const settinghandleBackClick = () => {
+  
+  const handleBackClick = () => {
     let redirectUrl = '/WalletTransactionInterface';
     router.push(redirectUrl);
   };
@@ -50,36 +49,32 @@ const QRScanner = () => {
       return;
     }
     
-    // Handle form submission logic
     const transactionHash = uuidv4();
     try {
       const response = await axios.post('http://localhost:8000/api/qrcode/', {
-        transaction_type: 'Debit', // Default value
+        transaction_type: 'Debit',
         transaction_amount: amount,
         transaction_currency: currency,
-        transaction_status: 'Success', // Default value
-        transaction_fee: 0.0, // Default value
-        user_phone_number: mobileNumber, // Use extracted mobile number
-        transaction_hash: transactionHash, // Include the unique hash
+        transaction_status: 'Success',
+        transaction_fee: 0.0,
+        user_phone_number: mobileNumber,
+        transaction_hash: transactionHash,
       });
       if (response.data.status === 'failure'){
         setAlertMessage('Transaction Failure!');
-      }else if (response.data.status === 'mobile_failure'){
-        setAlertMessage("Number is not valid")
-      }else if (response.data.status === 'insufficient_funds'){
-        setAlertMessage("Insufficient Amount")
-      }else if (response.data.status === 'curreny_error'){
-        setAlertMessage('User Does not have Currency')
-      }else {
+      } else if (response.data.status === 'mobile_failure'){
+        setAlertMessage("Number is not valid");
+      } else if (response.data.status === 'insufficient_funds'){
+        setAlertMessage("Insufficient Amount");
+      } else if (response.data.status === 'currency_error'){
+        setAlertMessage('User Does not have Currency');
+      } else {
         setAlertMessage('Transaction successful!');
       }
-      console.log('Transaction successful:', response.data);
-      
       setAmount('');
       setCurrency('');
     } catch (error) {
-      setMessage(error.response ? error.response.data.detail : 'Error submitting transaction');
-      console.error('Error submitting transaction:', error.response ? error.response.data : error.message);
+      setAlertMessage(error.response ? error.response.data.detail : 'Error submitting transaction');
     }
   };
 
@@ -89,14 +84,13 @@ const QRScanner = () => {
   };
 
   const extractMobileNumber = data => {
-    // Assuming the mobile number is a 10-digit number within the scanned data
     const regex = /\b\d{10}\b/;
     const match = data.match(regex);
     return match ? match[0] : null;
   };
 
   return (
-    <div className="qr-scanner-container">
+    <div className="qr-scanner-container no-scroll">
       {alertMessage && (
         <div className="customAlert">
           <p>{alertMessage}</p>
@@ -104,7 +98,7 @@ const QRScanner = () => {
         </div>
       )}
       <div className='back_container'>
-        <ArrowBackIcon className="setting_back_icon" onClick={settinghandleBackClick} />
+        <ArrowBackIcon className="setting_back_icon" onClick={handleBackClick} />
         <h1 className='heading'>Pay Through Scanner</h1>
       </div>
   
@@ -136,12 +130,12 @@ const QRScanner = () => {
           Scan QR Code
         </button>
       )}
-
+      
       {mobileNumber && (
         <>
-          <div className="currency-form">
-            <label htmlFor="currency">Currency:</label>
-            <select
+          <div className="currency-form1">
+            <label htmlFor="currency" className='currncy_name'>Currency:</label>
+            <select className='currency_type_drop_down'
               id="currency"
               value={currency}
               onChange={(e) => setCurrency(e.target.value)}

@@ -1,13 +1,25 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  font-family: Arial, Helvetica, sans-serif;
+  overflow: hidden;
+}
+
 .qr-scanner-container {
-  width: 320px;
-  margin: 50px auto;
+  width: 400px;
+  margin: 0px auto;
   padding: 25px;
   border: 1px solid #ddd;
   border-radius: 8px;
   text-align: center;
   background-color: black;
-  height: 550px;
-
+  height: 100vh;
+  overflow: hidden; /* Prevents scrolling */
 }
 
 .scan-button,
@@ -24,13 +36,11 @@
 .scan-button {
   background-color: #4caf50;
   color: white;
-  font-family: Arial, Helvetica, sans-serif;
 }
 
 .cancel-button {
   background-color: #f44336;
   color: white;
-  font-family: Arial, Helvetica, sans-serif;
 }
 
 .scanner-wrapper {
@@ -55,90 +65,39 @@
 .amount-form input {
   padding: 5px;
   color: black;
-  margin-bottom: 20x;
+  margin-bottom: 20px;
   font-family: Arial, Helvetica, sans-serif;
 }
 
-.amount-form button {
+.button_class {
   padding: 10px 20px;
   font-size: 16px;
   border: none;
   border-radius: 5px;
-  background-color: #2196f3;
   color: white;
   cursor: pointer;
-  margin-top: 20x;
+  margin-top: 20px;
   background: linear-gradient(90deg, #007bff9f, #800080);
   font-family: Arial, Helvetica, sans-serif;
-  margin-top: 15px;
 }
-.heading{
+
+.heading {
   color: white;
   font-weight: bold;
 }
 
-.amount_label{
+.amount_label {
   color: white;
   text-align: left;
 }
 
-.button_class{
-  margin-top: 10px;
-}
-
-.currency-form {
+.currency-form1 {
   margin: 0 auto;
   border: 1px solid black;
   border-radius: 5px;
   background-color: black;
   display: flex;
   flex-direction: column;
-}
-
-.currency-form .form-group {
-  margin-bottom: 15px;
-}
-
-.currency-form label {
-  display: block;
-  margin-bottom: 5px;
-  color: white;
-  text-align: left;
-  font-family: Arial, Helvetica, sans-serif;
-}
-
-.currency-form input,
-.currency-form select {
-  width: 100%;
-  padding: 10px;
-  margin-top: 5px;
-  border: 1px solid black;
-  border-radius: 5px;
-  box-sizing: border-box;
-  color: black;
-  font-family: Arial, Helvetica, sans-serif;
-}
-
-.currency-form button {
-  width: 100%;
-  padding: 10px;
-  background-color: #007bff;
-  color: black;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 16px;
-  background: linear-gradient(90deg, #007bff9f, #800080);
-  font-family: Arial, Helvetica, sans-serif;
-}
-
-.currency-form button:hover {
-  background-color: #0056b3;
-}
-.center-label{
-  text-align: center;
-  margin-bottom: 20px;
-  font-family: Arial, Helvetica, sans-serif;
 }
 
 .customAlert {
@@ -159,7 +118,6 @@
 
 .customAlert p {
   margin: 0 0 15px;
-  font-family: Arial, Helvetica, sans-serif;
 }
 
 .closeButton {
@@ -178,8 +136,28 @@
   color: #fff; 
   font-size: 26px; 
 }
-.back_container{
+
+.back_container {
   display: flex;
   flex-direction: row;
   margin-bottom: 20px;
+}
+
+.no-scroll {
+  overflow: hidden;
+}
+
+.currency_type_drop_down{
+  width: 100%;
+  padding: 8px;
+  font-size: 16px;
+  margin-top: 10px;
+}
+
+.currncy_name{
+    display: block;
+    margin-bottom: 8px;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+    text-align: left;
 }

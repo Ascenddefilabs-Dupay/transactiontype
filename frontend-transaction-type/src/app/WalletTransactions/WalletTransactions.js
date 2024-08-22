@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid'; // Import the uuid library
 import { QrReader } from 'react-qr-reader';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'; // Import the ArrowBackIcon
 import { useRouter } from 'next/navigation'
+import { useEffect } from 'react';
 
 const CurrencyForm = () => {
   const [mobileNumber, setMobileNumber] = useState('');
@@ -14,6 +15,19 @@ const CurrencyForm = () => {
   const [scanning, setScanning] = useState(false); // State to manage scanning state
   const [alertMessage, setAlertMessage] = useState(''); 
   const router = useRouter();
+
+  useEffect(() => {
+    // Load Razorpay script
+    const script = document.createElement('script');
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    document.body.appendChild(script);
+
+    // Cleanup the script when component unmounts
+    return () => {
+        document.body.removeChild(script);
+    };
+}, []);
 
   const currencies = [
     { code: 'USD', name: 'United States Dollar' },
@@ -31,6 +45,40 @@ const CurrencyForm = () => {
       amount: params.get('amount') || '',
       currency: params.get('currency') || '',
     };
+  };
+  const initiateRazorpayPayment = () => {
+    if (window.Razorpay) {
+        const options = {
+            key: 'rzp_test_41ch2lqayiGZ9X', // Your Razorpay API Key
+            amount: parseFloat(amount) * 100, // Amount in paisa
+            currency: currency,
+            name: 'DUPAY',
+            description: 'Payment for currency conversion',
+            handler: function (response) {
+                alert(`Payment successful! Payment ID: ${response.razorpay_payment_id}`);
+                // Handle payment success
+            },
+            prefill: {
+                name: 'User Name',
+                email: 'user@example.com',
+                contact: 9703325819,
+            },
+            notes: {
+                address: 'Your Address',
+            },
+            theme: {
+                color: '#F37254',
+            },
+        };
+
+        const rzp1 = new window.Razorpay(options);
+        rzp1.open();
+    } else {
+        alert("Razorpay script not loaded.");
+    }
+  };
+  const handleContinue = () => {
+    router.push('/Currenciespage');
   };
 
   const handleScan = (result) => {
@@ -150,6 +198,7 @@ const CurrencyForm = () => {
           value={currency}
           onChange={(e) => setCurrency(e.target.value)}
           required
+          className='currency_type'
         >
           <option value="">Select a currency</option>
           {currencies.map((currency) => (
@@ -167,6 +216,7 @@ const CurrencyForm = () => {
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           required
+          className='currnecy_input'
         />
       </div>
       
@@ -184,13 +234,14 @@ const CurrencyForm = () => {
             }
           }}
           required
+          className='currnecy_input'
         />
       </div>
       
         
       </div>
 
-      <button type="submit">Transfer</button>
+      <button type="submit" onClick={initiateRazorpayPayment}>Transfer</button>
       {message && <p>{message}</p>} {/* Display success or error message */}
     </form>
   );
