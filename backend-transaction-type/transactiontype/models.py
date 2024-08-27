@@ -64,7 +64,7 @@ class TransactionTable(models.Model):
     wallet_id = models.CharField(max_length=100 ,null=True, blank=True)
     sender_mobile_number= models.CharField(max_length=15 ,null=True, blank=True)
     fiat_address = models.CharField(max_length=255, null=True, blank=True)
-    transaction_description = models.CharField(max_length=255, null=True, blank=True)
+    transaction_method = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
         db_table = 'transaction_table'
