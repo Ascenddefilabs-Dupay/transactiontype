@@ -309,6 +309,60 @@ class QRViewSet(viewsets.ModelViewSet):
         
 
 
+class QRValidationViewSet(viewsets.ViewSet):
+    def create(self, request, *args, **kwargs):
+        user_phone_number = request.data.get('user_phone_number')
+        transaction_amount = float(request.data.get('transaction_amount'))
+        transaction_currency = request.data.get('transaction_currency')
+
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM currency_converter_fiatwallet")
+            rows = cursor.fetchall()
+
+        receiver_numbers = [row[7] for row in rows]
+        wallet_ids = [row[0] for row in rows]
+
+        if user_phone_number not in receiver_numbers:
+            return Response({'status': 'mobile_failure', 'message': 'Number is not valid'})
+
+        try:
+            index = receiver_numbers.index(user_phone_number)
+
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT * FROM user_currencies")
+                currency_rows = cursor.fetchall()
+
+            currency_wallet_id = [row[1] for row in currency_rows]
+            currency_type_list = [row[2] for row in currency_rows]
+            balance = [row[3] for row in currency_rows]
+
+            validation_list = []
+            reciever_wallet_amont = []
+            currncy_index1 = None
+
+            for i, wallet_id in enumerate(currency_wallet_id):
+                if wallet_ids[index] == wallet_id and transaction_currency == currency_type_list[i]:
+                    validation_list.append(currency_type_list[i])
+                    reciever_wallet_amont.append(balance[i])
+                    currncy_index1 = i
+                if wallet_id == wallet_ids[index] and transaction_currency == currency_type_list[i]:
+                    currncy_index = i
+
+            if len(validation_list) == 0:
+                return Response({'status': 'currency_error', 'message': 'User Does not have Currency'})
+
+            if float(transaction_amount) <= float(balance[currncy_index]):
+                return Response({'status': 'success', 'message': 'Validation successful'})
+
+            return Response({'status': 'insufficient_funds', 'message': 'Insufficient Amount'})
+
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+
+
 
 
 class FiatAddressViewSet(viewsets.ModelViewSet):
@@ -395,3 +449,53 @@ class FiatAddressViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+
+
+
+class TransactionValidationViewSet(viewsets.ViewSet):
+    def create(self, request, *args, **kwargs):
+        fiat_address = request.data.get('fiat_address')
+        transaction_amount = float(request.data.get('transaction_amount'))
+        transaction_currency = request.data.get('transaction_currency')
+
+        # Fetch wallet info based on fiat address
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM currency_converter_fiatwallet WHERE fiat_wallet_address = %s", [fiat_address])
+            fiat_wallet = cursor.fetchone()
+
+        if not fiat_wallet:
+            return Response({'status': 'address_failure', 'message': 'Fiat Address does not exist.'})
+
+        try:
+            # Fetch the last row of the wallet table
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT fiat_wallet_id FROM currency_converter_fiatwallet ORDER BY fiat_wallet_id DESC LIMIT 1")
+                last_wallet = cursor.fetchone()
+
+            if not last_wallet:
+                return Response({'status': 'failure', 'message': 'No wallet records found.'})
+
+            last_wallet_id = last_wallet[0]  # Wallet ID is in the first column
+
+            # Check if the selected currency exists in the user_currencies table for the last wallet ID
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT balance FROM user_currencies WHERE wallet_id = %s AND currency_type = %s",
+                    [last_wallet_id, transaction_currency]
+                )
+                currency_balance = cursor.fetchone()
+
+            if not currency_balance:
+                return Response({'status': 'currency_failure', 'message': 'Selected currency not found in the wallet.'})
+
+            current_balance = float(currency_balance[0])
+
+            # Validate if transaction amount is less than or equal to the current balance
+            if transaction_amount > current_balance:
+                return Response({'status': 'failure', 'message': 'Insufficient funds in the selected currency.'})
+
+            return Response({'status': 'success', 'message': 'Validation successful.'})
+
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
