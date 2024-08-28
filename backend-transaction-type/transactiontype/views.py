@@ -72,7 +72,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
             currency_type_list.append(i[2])
             balance.append(i[3])
 
-        print(rows[-1])
+
         try:
             wallet_id = rows[-1][0]
             sender_mobile_number = rows[-1][7]
@@ -103,6 +103,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
                 user_currency_id_list = []
                 a = -1
                 reciever_wallet_amont = []
+                sender_wallet_amount = []
                 validation_list = []
                 for i in currency_wallet_id:
                     a += 1
@@ -114,10 +115,12 @@ class TransactionViewSet(viewsets.ModelViewSet):
                     if wallet_id == currency_wallet_id[a] and request.data.get('transaction_currency') == currency_type_list[a]:
                         print(a)
                         validation_list.append(currency_type_list[a])
+                        sender_wallet_amount.append(balance[a])
 
-                print(user_currency_id_list, reciever_wallet_amont)
+                print(currency_wallet_id, wallet_id, wallet_ids[index])
+                print(wallet_id in currency_wallet_id , wallet_ids[index] in currency_wallet_id)
 
-                if wallet_id in currency_wallet_id and wallet_ids[index] in currency_wallet_id:
+                if wallet_id in currency_wallet_id:
                     currncy_index = currency_wallet_id.index(wallet_id)
                     if request.data.get('transaction_currency') in set(user_currency_id_list) and wallet_ids[index] in currency_wallet_id:
                         currncy_index1 = currency_wallet_id.index(wallet_ids[index])
@@ -127,14 +130,14 @@ class TransactionViewSet(viewsets.ModelViewSet):
                         return JsonResponse({'status': 'curreny_error', 'message': 'Payment Failure'}) 
 
 
-                    if float(request.data.get('transaction_amount')) <= float(balance[currncy_index]) and len(user_currency_id_list) >= 1:
-                        deducted_amount = float(balance[currncy_index]) - float(request.data.get('transaction_amount'))
+                    if float(request.data.get('transaction_amount')) <= float(sender_wallet_amount[0]) and len(user_currency_id_list) >= 1:
+                        deducted_amount = float(sender_wallet_amount[0]) - float(request.data.get('transaction_amount'))
                         credit_amount = float(reciever_wallet_amont[0]) + float(request.data.get('transaction_amount'))
-                        print(wallet_ids[index], credit_amount, deducted_amount)
+                        print(wallet_ids[index], credit_amount, deducted_amount, reciever_wallet_amont)
                         with connection.cursor() as cursor:
                             cursor.execute(
-                                "UPDATE user_currencies SET balance = %s WHERE wallet_id = %s",
-                                [deducted_amount, currency_wallet_id[currncy_index]]
+                                "UPDATE user_currencies SET balance = %s WHERE wallet_id = %s AND currency_type = %s",
+                                [deducted_amount, currency_wallet_id[currncy_index], request.data.get('transaction_currency')]
                             )
                         with connection.cursor() as cursor:
                             cursor.execute(
@@ -142,14 +145,14 @@ class TransactionViewSet(viewsets.ModelViewSet):
                                 [credit_amount, currency_wallet_id[currncy_index1], request.data.get('transaction_currency')]
                             )
                         return super().create(request, *args, **kwargs) 
-                    elif float(request.data.get('transaction_amount')) <= float(balance[currncy_index]) and len(user_currency_id_list) < 1 :
-                        deducted_amount = float(balance[currncy_index]) - float(request.data.get('transaction_amount'))
+                    elif float(request.data.get('transaction_amount')) <= float(sender_wallet_amount[0]) and len(user_currency_id_list) < 1 :
+                        deducted_amount = float(sender_wallet_amount[0]) - float(request.data.get('transaction_amount'))
                         credit_amount = float(request.data.get('transaction_amount'))
                         print(wallet_ids[index], credit_amount, deducted_amount)
                         with connection.cursor() as cursor:
                             cursor.execute(
-                                "UPDATE user_currencies SET balance = %s WHERE wallet_id = %s",
-                                [deducted_amount, currency_wallet_id[currncy_index]]
+                                "UPDATE user_currencies SET balance = %s WHERE wallet_id = %s AND currency_type = %s",
+                                [deducted_amount, currency_wallet_id[currncy_index],  request.data.get('transaction_currency')]
                             )
                         with connection.cursor() as cursor:
                             cursor.execute(
@@ -171,6 +174,62 @@ class TransactionViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'error': 'An unexpected error occurred'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
+class TransactionValidationViewSet(viewsets.ModelViewSet):
+    queryset = TransactionTable.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM currency_converter_fiatwallet")
+            rows = cursor.fetchall()
+
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM user_currencies")
+            currency_rows = cursor.fetchall()
+        
+        currency_wallet_id = []
+        currency_type_list = []
+        balance = []
+        for i in currency_rows:
+            currency_wallet_id.append(i[1])
+            currency_type_list.append(i[2])
+            balance.append(i[3])
+
+        try:
+            wallet_id = rows[-1][0]
+            sender_mobile_number = rows[-1][7]
+            amount = request.data.get('transaction_amount')
+            currency_type = request.data.get('transaction_currency')
+
+            receiver_numbers = [row[7] for row in rows]
+            wallet_ids = [row[0] for row in rows]
+
+            if request.data['user_phone_number'] not in receiver_numbers:
+                return JsonResponse({'status': 'mobile_failure', 'message': 'Mobile Number Failure'})
+            
+            index = receiver_numbers.index(request.data['user_phone_number'])
+            user_currency_id_list = []
+            sender_wallet_amount = 0
+            receiver_wallet_amount = 0
+
+            for i in range(len(currency_wallet_id)):
+                if wallet_ids[index] == currency_wallet_id[i] and currency_type == currency_type_list[i]:
+                    user_currency_id_list.append(currency_type_list[i])
+                    receiver_wallet_amount = balance[i]
+                
+                if wallet_id == currency_wallet_id[i] and currency_type == currency_type_list[i]:
+                    sender_wallet_amount = balance[i]
+
+            if not user_currency_id_list:
+                return JsonResponse({'status': 'currency_error', 'message': 'User Does not have Currency'})
+
+            if float(amount) > float(sender_wallet_amount):
+                return JsonResponse({'status': 'insufficient_funds', 'message': 'Insufficient Amount'})
+
+            return JsonResponse({'status': 'success', 'message': 'Validation passed'})
+
+        except Exception as e:
+            return Response({'error': 'An unexpected error occurred'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
 
@@ -237,6 +296,7 @@ class QRViewSet(viewsets.ModelViewSet):
                 a = -1
                 reciever_wallet_amont = []
                 validation_list = []
+                sender_wallet_amount = []
                 for i in currency_wallet_id:
                     a += 1
                     if wallet_ids[index] == currency_wallet_id[a] and request.data.get('transaction_currency') == currency_type_list[a]:
@@ -247,13 +307,14 @@ class QRViewSet(viewsets.ModelViewSet):
                     if wallet_id == currency_wallet_id[a] and request.data.get('transaction_currency') == currency_type_list[a]:
                         print(a)
                         validation_list.append(currency_type_list[a])
+                        sender_wallet_amount.append(balance[a])
                         
 
                         
 
                 print(user_currency_id_list, reciever_wallet_amont)
 
-                if wallet_id in currency_wallet_id and wallet_ids[index] in currency_wallet_id:
+                if wallet_id in currency_wallet_id:
                     currncy_index = currency_wallet_id.index(wallet_id)
                     if request.data.get('transaction_currency') in set(user_currency_id_list) and wallet_ids[index] in currency_wallet_id:
                         currncy_index1 = currency_wallet_id.index(wallet_ids[index])
@@ -263,14 +324,14 @@ class QRViewSet(viewsets.ModelViewSet):
                         return JsonResponse({'status': 'curreny_error', 'message': 'Payment Failure'}) 
 
 
-                    if float(request.data.get('transaction_amount')) <= float(balance[currncy_index]) and len(user_currency_id_list) >= 1:
-                        deducted_amount = float(balance[currncy_index]) - float(request.data.get('transaction_amount'))
+                    if float(request.data.get('transaction_amount')) <= float(sender_wallet_amount[0]) and len(user_currency_id_list) >= 1:
+                        deducted_amount = float(sender_wallet_amount[0]) - float(request.data.get('transaction_amount'))
                         credit_amount = float(reciever_wallet_amont[0]) + float(request.data.get('transaction_amount'))
-                        print(wallet_ids[index], credit_amount, deducted_amount)
+                        print(wallet_ids[index], credit_amount, deducted_amount, reciever_wallet_amont)
                         with connection.cursor() as cursor:
                             cursor.execute(
-                                "UPDATE user_currencies SET balance = %s WHERE wallet_id = %s",
-                                [deducted_amount, currency_wallet_id[currncy_index]]
+                                "UPDATE user_currencies SET balance = %s WHERE wallet_id = %s AND currency_type = %s",
+                                [deducted_amount, currency_wallet_id[currncy_index], request.data.get('transaction_currency')]
                             )
                         with connection.cursor() as cursor:
                             cursor.execute(
@@ -278,14 +339,14 @@ class QRViewSet(viewsets.ModelViewSet):
                                 [credit_amount, currency_wallet_id[currncy_index1], request.data.get('transaction_currency')]
                             )
                         return super().create(request, *args, **kwargs) 
-                    elif float(request.data.get('transaction_amount')) <= float(balance[currncy_index]) and len(user_currency_id_list) < 1 :
-                        deducted_amount = float(balance[currncy_index]) - float(request.data.get('transaction_amount'))
+                    elif float(request.data.get('transaction_amount')) <= float(sender_wallet_amount[0]) and len(user_currency_id_list) < 1 :
+                        deducted_amount = float(sender_wallet_amount[0]) - float(request.data.get('transaction_amount'))
                         credit_amount = float(request.data.get('transaction_amount'))
                         print(wallet_ids[index], credit_amount, deducted_amount)
                         with connection.cursor() as cursor:
                             cursor.execute(
-                                "UPDATE user_currencies SET balance = %s WHERE wallet_id = %s",
-                                [deducted_amount, currency_wallet_id[currncy_index]]
+                                "UPDATE user_currencies SET balance = %s WHERE wallet_id = %s AND currency_type = %s",
+                                [deducted_amount, currency_wallet_id[currncy_index],  request.data.get('transaction_currency')]
                             )
                         with connection.cursor() as cursor:
                             cursor.execute(
@@ -293,7 +354,7 @@ class QRViewSet(viewsets.ModelViewSet):
                                 INSERT INTO user_currencies (wallet_id, currency_type, balance)
                                 VALUES (%s, %s, %s)
                                 """,
-                                [wallet_ids[index], currency_type_list[currncy_index], float(request.data.get('transaction_amount'))]
+                                [wallet_ids[index], request.data.get('transaction_currency'), float(request.data.get('transaction_amount'))]
                             )
 
                         return super().create(request, *args, **kwargs)

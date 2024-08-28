@@ -7,12 +7,12 @@ from .views import ProjectViewSet, TransactionViewSet  ,UserRegistrationView ,QR
 router = DefaultRouter()
 
 router.register(r'projects', ProjectViewSet)
-router.register(r'wallet_transfer', TransactionViewSet)  # Make sure the URL pattern is 'transactions'
+router.register(r'wallet_transfer', TransactionViewSet, basename='wallet_transfer')  # Make sure the URL pattern is 'transactions'
 router.register(r'qrcode', QRViewSet, basename='qrcode')
 router.register(r'validation-qrcode', QRValidationViewSet, basename='validation-qrcode')
 router.register(r'address-transfer', FiatAddressViewSet, basename='address-transfer')
 router.register(r'validate-transaction', TransactionValidationViewSet, basename='validate-transaction')
-
+router.register(r'transaction_validation', TransactionValidationViewSet, basename='transaction_validation')
 
 
 
