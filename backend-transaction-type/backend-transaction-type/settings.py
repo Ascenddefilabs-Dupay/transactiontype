@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-5ueuy9sa+y+k_nhl7n0g&j4b#w#w*_c#$e#fs7cv(oa0z+7#f*
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -89,15 +89,12 @@ WSGI_APPLICATION = 'backend-transaction-type.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django_cockroachdb',
-        'NAME': 'Dupay',
-        'USER': 'Gtpl',
-        'PASSWORD': 'mu6-f6rSv9t_oCLSh6iFLg',
-        'HOST': 'meteor-dunnart-5620.7s5.aws-ap-south-1.cockroachlabs.cloud',
+        'NAME': 'dupay',
+        'USER': 'dupay',
+        'PASSWORD': 'lPVRIuSyVCJqfmghd7ckBw',
+        'HOST': 'chill-dibbler-5989.7s5.aws-ap-south-1.cockroachlabs.cloud',
         'PORT': '26257',
-        # 'OPTIONS': {
-        #     'sslmode': 'verify-full'
-        # },
-        'sslmode': 'disable',
+        'sslmode': 'disable'
     }
 }
 

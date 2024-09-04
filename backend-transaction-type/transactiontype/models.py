@@ -68,6 +68,7 @@ class TransactionTable(models.Model):
 
     class Meta:
         db_table = 'transaction_table'
+        managed: False
 
     def __str__(self):
         return f"{self.transaction_id} - {self.transaction_amount} {self.transaction_currency}"
@@ -76,8 +77,6 @@ class TransactionTable(models.Model):
         if not self.transaction_id:
             self.transaction_id = self.generate_transaction_id()
 
-        if not self.wallet_id:
-            self.wallet_id = self.wallet_id_fetch()
 
         if not self.sender_mobile_number:
             self.sender_mobile_number = self.sender_mobile_number_fetch()
@@ -94,12 +93,7 @@ class TransactionTable(models.Model):
             return f'TRANS{new_number:06d}'
         return 'TRANS000001'
     
-    def wallet_id_fetch(self):
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT * FROM currency_converter_fiatwallet")
-            rows = cursor.fetchall()
-        print(rows[-1][0])
-        return rows[-1][0]
+
     def sender_mobile_number_fetch(self):
         with connection.cursor() as cursor:
             cursor.execute("SELECT * FROM currency_converter_fiatwallet")

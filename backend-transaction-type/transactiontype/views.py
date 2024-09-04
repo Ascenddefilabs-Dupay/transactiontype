@@ -426,11 +426,151 @@ class QRValidationViewSet(viewsets.ViewSet):
 
 
 
+# class FiatAddressViewSet(viewsets.ModelViewSet):
+#     queryset = TransactionTable.objects.all()
+#     serializer_class = TransactionSerializer
+
+#     def create(self, request, *args, **kwargs):
+#         fiat_address = request.data.get('fiat_address')
+#         transaction_amount = float(request.data.get('transaction_amount'))
+#         transaction_currency = request.data.get('transaction_currency')
+
+#         # Fetch wallet info based on fiat address
+#         with connection.cursor() as cursor:
+#             cursor.execute("SELECT * FROM currency_converter_fiatwallet WHERE fiat_wallet_address = %s", [fiat_address])
+#             fiat_wallet = cursor.fetchone()
+
+#         if not fiat_wallet:
+#             return JsonResponse({'status': 'address_failure', 'message': 'Fiat Address does not exist.'})
+
+#         try:
+#             # Fetch the last row of the wallet table
+#             with connection.cursor() as cursor:
+#                 cursor.execute("SELECT fiat_wallet_id FROM currency_converter_fiatwallet ORDER BY fiat_wallet_id DESC LIMIT 1")
+#                 last_wallet = cursor.fetchone()
+
+#             if not last_wallet:
+#                 return JsonResponse({'status': 'failure', 'message': 'No wallet records found.'})
+
+#             last_wallet_id = last_wallet[0]  # Wallet ID is in the first column
+
+#             # Check if the selected currency exists in the user_currencies table for the last wallet ID
+#             with connection.cursor() as cursor:
+#                 cursor.execute(
+#                     "SELECT balance FROM user_currencies WHERE wallet_id = %s AND currency_type = %s",
+#                     [last_wallet_id, transaction_currency]
+#                 )
+#                 currency_balance = cursor.fetchone()
+
+#             if not currency_balance:
+#                 return JsonResponse({'status': 'currency_failuregi', 'message': 'Selected currency not found in the wallet.'})
+
+#             current_balance = float(currency_balance[0])
+
+#             # Validate if transaction amount is less than or equal to the current balance
+#             if transaction_amount > current_balance:
+#                 return JsonResponse({'status': 'failure', 'message': 'Insufficient funds in the selected currency.'})
+
+#             # Deduct the transaction amount from the selected currency balance
+#             updated_balance = current_balance - transaction_amount
+#             with connection.cursor() as cursor:
+#                 cursor.execute(
+#                     "UPDATE user_currencies SET balance = %s WHERE wallet_id = %s AND currency_type = %s",
+#                     [updated_balance, last_wallet_id, transaction_currency]
+#                 )
+
+#             # Add the transaction amount to the fiat wallet's currency balance
+#             fiat_wallet_id = fiat_wallet[0]  # Wallet ID is in the first column
+#             with connection.cursor() as cursor:
+#                 cursor.execute(
+#                     "SELECT balance FROM user_currencies WHERE wallet_id = %s AND currency_type = %s",
+#                     [fiat_wallet_id, transaction_currency]
+#                 )
+#                 fiat_wallet_balance = cursor.fetchone()
+
+#             if fiat_wallet_balance:
+#                 # Update existing row
+#                 new_fiat_balance = float(fiat_wallet_balance[0]) + transaction_amount
+#                 with connection.cursor() as cursor:
+#                     cursor.execute(
+#                         "UPDATE user_currencies SET balance = %s WHERE wallet_id = %s AND currency_type = %s",
+#                         [new_fiat_balance, fiat_wallet_id, transaction_currency]
+#                     )
+#             else:
+#                 # Insert new row
+#                 with connection.cursor() as cursor:
+#                     cursor.execute(
+#                         "INSERT INTO user_currencies (wallet_id, currency_type, balance) VALUES (%s, %s, %s)",
+#                         [fiat_wallet_id, transaction_currency, transaction_amount]
+#                     )
+
+#             # Proceed with creating the transaction record
+#             return super().create(request, *args, **kwargs)
+
+#         except Exception as e:
+#             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+
+
+# class TransactionValidationViewSet(viewsets.ViewSet):
+#     def create(self, request, *args, **kwargs):
+#         fiat_address = request.data.get('fiat_address')
+#         transaction_amount = float(request.data.get('transaction_amount'))
+#         transaction_currency = request.data.get('transaction_currency')
+
+#         # Fetch wallet info based on fiat address
+#         with connection.cursor() as cursor:
+#             cursor.execute("SELECT * FROM currency_converter_fiatwallet WHERE fiat_wallet_address = %s", [fiat_address])
+#             fiat_wallet = cursor.fetchone()
+
+#         if not fiat_wallet:
+#             return Response({'status': 'address_failure', 'message': 'Fiat Address does not exist.'})
+
+#         try:
+#             # Fetch the last row of the wallet table
+#             with connection.cursor() as cursor:
+#                 cursor.execute("SELECT fiat_wallet_id FROM currency_converter_fiatwallet ORDER BY fiat_wallet_id DESC LIMIT 1")
+#                 last_wallet = cursor.fetchone()
+
+#             if not last_wallet:
+#                 return Response({'status': 'failure', 'message': 'No wallet records found.'})
+
+#             last_wallet_id = last_wallet[0]  # Wallet ID is in the first column
+
+#             # Check if the selected currency exists in the user_currencies table for the last wallet ID
+#             with connection.cursor() as cursor:
+#                 cursor.execute(
+#                     "SELECT balance FROM user_currencies WHERE wallet_id = %s AND currency_type = %s",
+#                     [last_wallet_id, transaction_currency]
+#                 )
+#                 currency_balance = cursor.fetchone()
+
+#             if not currency_balance:
+#                 return Response({'status': 'currency_failure', 'message': 'Selected currency not found in the wallet.'})
+
+#             current_balance = float(currency_balance[0])
+
+#             # Validate if transaction amount is less than or equal to the current balance
+#             if transaction_amount > current_balance:
+#                 return Response({'status': 'failure', 'message': 'Insufficient funds in the selected currency.'})
+
+#             return Response({'status': 'success', 'message': 'Validation successful.'})
+
+#         except Exception as e:
+#             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
+
+
+
 class FiatAddressViewSet(viewsets.ModelViewSet):
     queryset = TransactionTable.objects.all()
     serializer_class = TransactionSerializer
 
     def create(self, request, *args, **kwargs):
+        user_id = request.data.get('user_id')
         fiat_address = request.data.get('fiat_address')
         transaction_amount = float(request.data.get('transaction_amount'))
         transaction_currency = request.data.get('transaction_currency')
@@ -444,26 +584,29 @@ class FiatAddressViewSet(viewsets.ModelViewSet):
             return JsonResponse({'status': 'address_failure', 'message': 'Fiat Address does not exist.'})
 
         try:
-            # Fetch the last row of the wallet table
+            # Fetch wallet ID based on user_id
             with connection.cursor() as cursor:
-                cursor.execute("SELECT fiat_wallet_id FROM currency_converter_fiatwallet ORDER BY fiat_wallet_id DESC LIMIT 1")
-                last_wallet = cursor.fetchone()
+                cursor.execute(
+                    "SELECT fiat_wallet_id FROM currency_converter_fiatwallet WHERE user_id = %s",
+                    [user_id]
+                )
+                user_wallet = cursor.fetchone()
 
-            if not last_wallet:
-                return JsonResponse({'status': 'failure', 'message': 'No wallet records found.'})
+            if not user_wallet:
+                return JsonResponse({'status': 'failure', 'message': 'No wallet record found for the given user ID.'})
 
-            last_wallet_id = last_wallet[0]  # Wallet ID is in the first column
+            user_wallet_id = user_wallet[0]  # Wallet ID is in the first column
 
-            # Check if the selected currency exists in the user_currencies table for the last wallet ID
+            # Check if the selected currency exists in the user_currencies table for the user's wallet ID
             with connection.cursor() as cursor:
                 cursor.execute(
                     "SELECT balance FROM user_currencies WHERE wallet_id = %s AND currency_type = %s",
-                    [last_wallet_id, transaction_currency]
+                    [user_wallet_id, transaction_currency]
                 )
                 currency_balance = cursor.fetchone()
 
             if not currency_balance:
-                return JsonResponse({'status': 'currency_failuregi', 'message': 'Selected currency not found in the wallet.'})
+                return JsonResponse({'status': 'currency_failure', 'message': 'Selected currency not found in the wallet.'})
 
             current_balance = float(currency_balance[0])
 
@@ -476,7 +619,7 @@ class FiatAddressViewSet(viewsets.ModelViewSet):
             with connection.cursor() as cursor:
                 cursor.execute(
                     "UPDATE user_currencies SET balance = %s WHERE wallet_id = %s AND currency_type = %s",
-                    [updated_balance, last_wallet_id, transaction_currency]
+                    [updated_balance, user_wallet_id, transaction_currency]
                 )
 
             # Add the transaction amount to the fiat wallet's currency balance
@@ -504,6 +647,8 @@ class FiatAddressViewSet(viewsets.ModelViewSet):
                         [fiat_wallet_id, transaction_currency, transaction_amount]
                     )
 
+            request.data['wallet_id'] = user_wallet_id
+
             # Proceed with creating the transaction record
             return super().create(request, *args, **kwargs)
 
@@ -512,10 +657,9 @@ class FiatAddressViewSet(viewsets.ModelViewSet):
 
 
 
-
-
 class TransactionValidationViewSet(viewsets.ViewSet):
     def create(self, request, *args, **kwargs):
+        user_id = request.data.get('user_id')
         fiat_address = request.data.get('fiat_address')
         transaction_amount = float(request.data.get('transaction_amount'))
         transaction_currency = request.data.get('transaction_currency')
@@ -529,21 +673,24 @@ class TransactionValidationViewSet(viewsets.ViewSet):
             return Response({'status': 'address_failure', 'message': 'Fiat Address does not exist.'})
 
         try:
-            # Fetch the last row of the wallet table
+            # Fetch wallet ID based on user_id
             with connection.cursor() as cursor:
-                cursor.execute("SELECT fiat_wallet_id FROM currency_converter_fiatwallet ORDER BY fiat_wallet_id DESC LIMIT 1")
-                last_wallet = cursor.fetchone()
+                cursor.execute(
+                    "SELECT fiat_wallet_id FROM currency_converter_fiatwallet WHERE user_id = %s",
+                    [user_id]
+                )
+                user_wallet = cursor.fetchone()
 
-            if not last_wallet:
-                return Response({'status': 'failure', 'message': 'No wallet records found.'})
+            if not user_wallet:
+                return Response({'status': 'failure', 'message': 'No wallet record found for the given user ID.'})
 
-            last_wallet_id = last_wallet[0]  # Wallet ID is in the first column
+            user_wallet_id = user_wallet[0]  # Wallet ID is in the first column
 
-            # Check if the selected currency exists in the user_currencies table for the last wallet ID
+            # Check if the selected currency exists in the user_currencies table for the user's wallet ID
             with connection.cursor() as cursor:
                 cursor.execute(
                     "SELECT balance FROM user_currencies WHERE wallet_id = %s AND currency_type = %s",
-                    [last_wallet_id, transaction_currency]
+                    [user_wallet_id, transaction_currency]
                 )
                 currency_balance = cursor.fetchone()
 
