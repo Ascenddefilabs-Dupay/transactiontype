@@ -96,7 +96,7 @@ class TransactionTable(models.Model):
 
     def sender_mobile_number_fetch(self):
         with connection.cursor() as cursor:
-            cursor.execute("SELECT * FROM currency_converter_fiatwallet")
+            cursor.execute("SELECT * FROM fiat_wallet")
             rows = cursor.fetchall()
         print(rows[-1][7])
         return rows[-1][7]
