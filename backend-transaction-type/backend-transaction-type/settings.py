@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-5ueuy9sa+y+k_nhl7n0g&j4b#w#w*_c#$e#fs7cv(oa0z+7#f*
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -140,4 +140,4 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# ALLOWED_HOSTS = ['transactiontype-rcfpsxcera-uc.a.run.app']
+ALLOWED_HOSTS = ['transactiontype-rcfpsxcera-uc.a.run.app']
