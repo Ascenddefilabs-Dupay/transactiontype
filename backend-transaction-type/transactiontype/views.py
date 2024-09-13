@@ -12,6 +12,116 @@ from rest_framework.views import APIView
 from django.db import connection
 from django.http import JsonResponse
 
+
+from django.views import View
+# class FetchQRCodeView(View):
+
+#     def get(self, request, *args, **kwargs):
+#         user_id = request.GET.get('user_id')  # Get user_id from query parameters
+#         if not user_id:
+#             return JsonResponse({'error': 'User ID is required.'}, status=400)
+
+#         qr_code = None
+
+#         try:
+#             with connection.cursor() as cursor:
+#                 # Query to fetch the qr_code from fiat_wallet table based on user_id
+#                 cursor.execute("""
+#                     SELECT qr_code 
+#                     FROM fiat_wallet 
+#                     WHERE user_id = %s
+#                 """, [user_id])
+#                 row = cursor.fetchone()
+
+#                 if row:
+#                     qr_code = row[0]  # Extract the QR code from the query result
+#                 else:
+#                     return JsonResponse({'error': 'QR code not found for this user ID.'}, status=404)
+
+#         except Exception as e:
+#             return JsonResponse({'error': str(e)}, status=500)
+
+#         return JsonResponse({'qr_code': qr_code})
+    
+
+# class FetchQRCodeView(View):
+
+#     def get(self, request, *args, **kwargs):
+#         user_id = request.GET.get('user_id')  # Get user_id from query parameters
+#         if not user_id:
+#             return JsonResponse({'error': 'User ID is required.'}, status=400)
+
+#         qr_code = None
+#         email = None
+#         mobile_number = None
+
+#         try:
+#             with connection.cursor() as cursor:
+#                 # Query to fetch the qr_code, email, and mobile number from fiat_wallet table based on user_id
+#                 cursor.execute("""
+#                     SELECT qr_code, fiat_wallet_email, fiat_wallet_phone_number 
+#                     FROM fiat_wallet 
+#                     WHERE user_id = %s
+#                 """, [user_id])
+#                 row = cursor.fetchone()
+
+#                 if row:
+#                     qr_code = row[0]  # Extract the QR code from the query result
+#                     email = row[1]   # Extract the email
+#                     mobile_number = row[2]  # Extract the mobile number
+#                 else:
+#                     return JsonResponse({'error': 'Details not found for this user ID.'}, status=404)
+
+#         except Exception as e:
+#             return JsonResponse({'error': str(e)}, status=500)
+
+#         return JsonResponse({'qr_code': qr_code, 'email': email, 'mobile_number': mobile_number})
+
+class FetchQRCodeView(View):
+
+    def get(self, request, *args, **kwargs):
+        user_id = request.GET.get('user_id')  # Get user_id from query parameters
+        if not user_id:
+            return JsonResponse({'error': 'User ID is required.'}, status=400)
+
+        qr_code = None
+        email = None
+        mobile_number = None
+        first_name = None  # Variable to store the user's first name
+
+        try:
+            with connection.cursor() as cursor:
+                # Query to fetch the qr_code, email, mobile number from fiat_wallet table 
+                # and the user's name from the users table based on user_id
+                cursor.execute("""
+                    SELECT f.qr_code, f.fiat_wallet_email, f.fiat_wallet_phone_number, u.user_first_name
+                    FROM fiat_wallet f
+                    JOIN users u ON f.user_id = u.user_id
+                    WHERE f.user_id = %s
+                """, [user_id])
+                
+                row = cursor.fetchone()
+
+                if row:
+                    qr_code = row[0]  # Extract the QR code from the query result
+                    email = row[1]    # Extract the email
+                    mobile_number = row[2]  # Extract the mobile number
+                    first_name = row[3]  # Extract the user's first name
+                else:
+                    return JsonResponse({'error': 'Details not found for this user ID.'}, status=404)
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+        return JsonResponse({
+            'qr_code': qr_code,
+            'email': email,
+            'mobile_number': mobile_number,
+            'first_name': first_name  # Send the first name to the frontend
+        })
+
+
+
 class UserRegistrationView(APIView):
     def post(self, request, *args, **kwargs):
         name = request.data.get('name')

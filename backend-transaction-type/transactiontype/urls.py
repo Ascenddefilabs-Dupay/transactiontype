@@ -1,7 +1,7 @@
 # wallet/urls.py
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import ProjectViewSet, TransactionViewSet  ,UserRegistrationView ,QRCodeListView, QRViewSet ,FiatAddressViewSet  ,TransactionValidationViewSet  ,QRValidationViewSet ,NumberTransactionValidationViewSet  
+from .views import ProjectViewSet, TransactionViewSet  ,UserRegistrationView ,QRCodeListView, QRViewSet ,FiatAddressViewSet  ,TransactionValidationViewSet  ,QRValidationViewSet ,NumberTransactionValidationViewSet  ,FetchQRCodeView
 
 
 router = DefaultRouter()
@@ -20,4 +20,6 @@ urlpatterns = [
     path('', include(router.urls)),
     path('register/', UserRegistrationView.as_view(), name='user_registration'),
     path('qr_code_list/', QRCodeListView.as_view(), name='qr_code_list'),
+
+    path('fetch-qr-code/', FetchQRCodeView.as_view(), name='fetch_qr_code'),
 ]
