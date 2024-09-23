@@ -78,10 +78,6 @@ class TransactionTable(models.Model):
             self.transaction_id = self.generate_transaction_id()
 
 
-        if not self.sender_mobile_number:
-            self.sender_mobile_number = self.sender_mobile_number_fetch()
-        
-
         super().save(*args, **kwargs)
 
     def generate_transaction_id(self):
@@ -93,11 +89,3 @@ class TransactionTable(models.Model):
             return f'TRANS{new_number:06d}'
         return 'TRANS000001'
     
-
-    def sender_mobile_number_fetch(self):
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT * FROM fiat_wallet")
-            rows = cursor.fetchall()
-        print(rows[-1][7])
-        return rows[-1][7]
-

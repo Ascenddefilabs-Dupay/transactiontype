@@ -179,8 +179,8 @@ class TransactionViewSet(viewsets.ModelViewSet):
 
         try:
             if user_wallet:  # Ensure we have wallet data for the given user_id
-                wallet_id = user_wallet[0]  # Get wallet_id from the user_wallet
-                sender_mobile_number = user_wallet[7]  # Get mobile number
+                wallet_id = user_wallet[1]  # Get wallet_id from the user_wallet
+                sender_mobile_number = user_wallet[8]  # Get mobile number
 
                 # Process the transaction details
                 request.data['wallet_id'] = wallet_id
@@ -195,9 +195,9 @@ class TransactionViewSet(viewsets.ModelViewSet):
                 wallet_ids = []
                 wallet_amount = []
                 for i in rows:
-                    receiver_numbers.append(i[7])
-                    wallet_ids.append(i[0])
-                    wallet_amount.append(i[4])
+                    receiver_numbers.append(i[8])
+                    wallet_ids.append(i[1])
+                    wallet_amount.append(i[5])
 
                 # Check if the provided phone number exists in receiver numbers
                 if request.data['user_phone_number'] in receiver_numbers:
@@ -294,8 +294,8 @@ class NumberTransactionValidationViewSet(viewsets.ModelViewSet):
         if not user_wallet:
             return JsonResponse({'status': 'failure', 'message': 'Invalid User ID'})
 
-        wallet_id = user_wallet[0]  # Get wallet_id from the user_wallet
-        sender_mobile_number = user_wallet[7]  # Get mobile number
+        wallet_id = user_wallet[1]  # Get wallet_id from the user_wallet
+        sender_mobile_number = user_wallet[8]  # Get mobile number
 
         # Fetch all rows from the user_currencies table
         with connection.cursor() as cursor:
@@ -307,7 +307,7 @@ class NumberTransactionValidationViewSet(viewsets.ModelViewSet):
             cursor.execute("SELECT * FROM fiat_wallet")
             receiver_rows = cursor.fetchall()
 
-        receiver_numbers = [row[7] for row in receiver_rows]  # Extract receiver mobile numbers
+        receiver_numbers = [row[8] for row in receiver_rows]  # Extract receiver mobile numbers
 
         if request.data['user_phone_number'] not in receiver_numbers:
             return JsonResponse({'status': 'mobile_failure', 'message': 'Receiver mobile number not found'})
@@ -364,7 +364,7 @@ class QRValidationViewSet(viewsets.ViewSet):
         if not user_wallet:
             return JsonResponse({'status': 'failure', 'message': 'Invalid User ID'})
 
-        wallet_id = user_wallet[0]  # Get wallet_id from the user_wallet
+        wallet_id = user_wallet[1]  # Get wallet_id from the user_wallet
 
         # Fetch all rows from the user_currencies table
         with connection.cursor() as cursor:
@@ -376,7 +376,7 @@ class QRValidationViewSet(viewsets.ViewSet):
             cursor.execute("SELECT * FROM fiat_wallet")
             receiver_rows = cursor.fetchall()
 
-        receiver_numbers = [row[7] for row in receiver_rows]  # Extract receiver mobile numbers
+        receiver_numbers = [row[8] for row in receiver_rows]  # Extract receiver mobile numbers
 
         if user_phone_number not in receiver_numbers:
             return JsonResponse({'status': 'mobile_failure', 'message': 'Receiver mobile number not found'})
@@ -432,8 +432,8 @@ class QRViewSet(viewsets.ModelViewSet):
         if not user_wallet:
             return JsonResponse({'status': 'failure', 'message': 'Invalid User ID'})
 
-        wallet_id = user_wallet[0]  # Get wallet_id from the user_wallet
-        sender_mobile_number = user_wallet[7]  # Get mobile number
+        wallet_id = user_wallet[1]  # Get wallet_id from the user_wallet
+        sender_mobile_number = user_wallet[8]  # Get mobile number
 
         # Fetch currency details
         with connection.cursor() as cursor:
@@ -453,8 +453,8 @@ class QRViewSet(viewsets.ModelViewSet):
             cursor.execute("SELECT * FROM fiat_wallet")
             rows = cursor.fetchall()
 
-        receiver_numbers = [row[7] for row in rows]
-        wallet_ids = [row[0] for row in rows]
+        receiver_numbers = [row[8] for row in rows]
+        wallet_ids = [row[1] for row in rows]
 
         if request.data['user_phone_number'] not in receiver_numbers:
             return JsonResponse({'status': 'mobile_failure', 'message': 'Mobile Number Failure'})
@@ -552,7 +552,7 @@ class FiatAddressViewSet(viewsets.ModelViewSet):
             # Fetch wallet ID based on user_id
             with connection.cursor() as cursor:
                 cursor.execute(
-                    "SELECT fiat_wallet_id FROM fiat_wallet WHERE user_id = %s",
+                    "SELECT fiat_wallet_id  FROM fiat_wallet WHERE user_id = %s",
                     [user_id]
                 )
                 user_wallet = cursor.fetchone()
@@ -560,7 +560,16 @@ class FiatAddressViewSet(viewsets.ModelViewSet):
             if not user_wallet:
                 return JsonResponse({'status': 'failure', 'message': 'No wallet record found for the given user ID.'})
 
-            user_wallet_id = user_wallet[0]  # Wallet ID is in the first column
+            user_wallet_id = user_wallet[0]  
+
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT fiat_wallet_phone_number FROM fiat_wallet WHERE user_id = %s",  # Replace 'user_table' with your actual table name
+                    [user_id]
+                )
+                mobile_number = cursor.fetchone()
+
+            sender_number = mobile_number[0]
 
             # Check if the selected currency exists in the user_currencies table for the user's wallet ID
             with connection.cursor() as cursor:
@@ -588,7 +597,7 @@ class FiatAddressViewSet(viewsets.ModelViewSet):
                 )
 
             # Add the transaction amount to the fiat wallet's currency balance
-            fiat_wallet_id = fiat_wallet[0]  # Wallet ID is in the first column
+            fiat_wallet_id = fiat_wallet[1]  # Wallet ID is in the first column
             with connection.cursor() as cursor:
                 cursor.execute(
                     "SELECT balance FROM user_currencies WHERE wallet_id = %s AND currency_type = %s",
@@ -613,6 +622,7 @@ class FiatAddressViewSet(viewsets.ModelViewSet):
                     )
 
             request.data['wallet_id'] = user_wallet_id
+            request.data['sender_mobile_number']= sender_number
 
             # Proceed with creating the transaction record
             return super().create(request, *args, **kwargs)
