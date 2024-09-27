@@ -11,6 +11,7 @@ from .serializers import UserSerializer
 from rest_framework.views import APIView
 from django.db import connection
 from django.http import JsonResponse
+from rest_framework.decorators import api_view
 
 
 from django.views import View
@@ -686,4 +687,53 @@ class TransactionValidationViewSet(viewsets.ViewSet):
 
 
 
+@api_view(['POST'])
+def get_wallet_amount(request):
+    wallet_id = request.data.get('wallet_id')
+    currency = request.data.get('currency')
 
+    try:
+        # Check if wallet_id exists in the user_currencies table
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1 FROM user_currencies WHERE wallet_id = %s", [wallet_id])
+            wallet_exists = cursor.fetchone()  # Check if the wallet exists
+
+        if not wallet_exists:
+            return Response({'error': 'Wallet ID not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Check if currency exists for the given wallet_id
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT balance FROM user_currencies
+                WHERE wallet_id = %s AND currency_type = %s
+            """, [wallet_id, currency])
+            result = cursor.fetchone()
+
+        if result:
+            amount = result[0]
+            return Response({'amount': amount}, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'Currency not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+@api_view(['POST'])
+def get_currency_icon(request):
+    currency = request.data.get('currency')
+    
+    if not currency:
+        return Response({'error': 'Currency not provided.'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT icon FROM admincms WHERE currency_type = %s", [currency])
+        result = cursor.fetchone()
+    
+    if result:
+        icon_url = result[0]  # Assuming the column 'icon_url' holds the URL of the icon
+        return Response({'icon_url': icon_url}, status=status.HTTP_200_OK)
+    else:
+        return Response({'error': 'Currency icon not found.'}, status=status.HTTP_404_NOT_FOUND)
