@@ -41,16 +41,6 @@ class User(models.Model):
 
 
 
-
-
-# Create your models here.
-class Project(models.Model):
-    name = models.CharField(max_length=100)
-    email = models.CharField(max_length=100)
-
-    def __str__(self):
-        return self.name
-
 class TransactionTable(models.Model):
     transaction_id = models.CharField(max_length=100, unique=True, blank=True, editable=False, primary_key=True)
     transaction_type = models.CharField(max_length=50 ,null=True, blank=True)

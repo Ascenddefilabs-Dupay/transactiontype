@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Project , TransactionTable 
+from .models import  TransactionTable 
 from .models import User
 
 
@@ -8,14 +8,6 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'name', 'mobile_number', 'qr_code']
 
-
-
-
-
-class ProjectSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Project
-        fields = '__all__'
 
 
 class TransactionSerializer(serializers.ModelSerializer):
