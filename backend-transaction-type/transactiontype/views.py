@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework import viewsets
-from .models import Project ,TransactionTable 
-from .serializers import ProjectSerializer ,TransactionSerializer 
+from .models import TransactionTable 
+from .serializers import TransactionSerializer 
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
@@ -15,68 +15,6 @@ from rest_framework.decorators import api_view
 
 
 from django.views import View
-# class FetchQRCodeView(View):
-
-#     def get(self, request, *args, **kwargs):
-#         user_id = request.GET.get('user_id')  # Get user_id from query parameters
-#         if not user_id:
-#             return JsonResponse({'error': 'User ID is required.'}, status=400)
-
-#         qr_code = None
-
-#         try:
-#             with connection.cursor() as cursor:
-#                 # Query to fetch the qr_code from fiat_wallet table based on user_id
-#                 cursor.execute("""
-#                     SELECT qr_code 
-#                     FROM fiat_wallet 
-#                     WHERE user_id = %s
-#                 """, [user_id])
-#                 row = cursor.fetchone()
-
-#                 if row:
-#                     qr_code = row[0]  # Extract the QR code from the query result
-#                 else:
-#                     return JsonResponse({'error': 'QR code not found for this user ID.'}, status=404)
-
-#         except Exception as e:
-#             return JsonResponse({'error': str(e)}, status=500)
-
-#         return JsonResponse({'qr_code': qr_code})
-    
-
-# class FetchQRCodeView(View):
-
-#     def get(self, request, *args, **kwargs):
-#         user_id = request.GET.get('user_id')  # Get user_id from query parameters
-#         if not user_id:
-#             return JsonResponse({'error': 'User ID is required.'}, status=400)
-
-#         qr_code = None
-#         email = None
-#         mobile_number = None
-
-#         try:
-#             with connection.cursor() as cursor:
-#                 # Query to fetch the qr_code, email, and mobile number from fiat_wallet table based on user_id
-#                 cursor.execute("""
-#                     SELECT qr_code, fiat_wallet_email, fiat_wallet_phone_number 
-#                     FROM fiat_wallet 
-#                     WHERE user_id = %s
-#                 """, [user_id])
-#                 row = cursor.fetchone()
-
-#                 if row:
-#                     qr_code = row[0]  # Extract the QR code from the query result
-#                     email = row[1]   # Extract the email
-#                     mobile_number = row[2]  # Extract the mobile number
-#                 else:
-#                     return JsonResponse({'error': 'Details not found for this user ID.'}, status=404)
-
-#         except Exception as e:
-#             return JsonResponse({'error': str(e)}, status=500)
-
-#         return JsonResponse({'qr_code': qr_code, 'email': email, 'mobile_number': mobile_number})
 
 class FetchQRCodeView(View):
 
@@ -144,12 +82,6 @@ class QRCodeListView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-
-# Create your views here.
-
-class ProjectViewSet(viewsets.ModelViewSet):
-    queryset = Project.objects.all()
-    serializer_class = ProjectSerializer
 
 
 
