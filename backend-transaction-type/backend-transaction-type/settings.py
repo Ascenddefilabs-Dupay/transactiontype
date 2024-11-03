@@ -25,12 +25,12 @@ SECRET_KEY = 'django-insecure-5ueuy9sa+y+k_nhl7n0g&j4b#w#w*_c#$e#fs7cv(oa0z+7#f*
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [
-    # 'fiatmanagement-rcfpsxcera-uc.a.run.app',
-    'transactiontype-ind-255574993735.asia-south1.run.app'
+# ALLOWED_HOSTS = [
+#     # 'fiatmanagement-rcfpsxcera-uc.a.run.app',
+#     'transactiontype-ind-255574993735.asia-south1.run.app'
     
-]
-ALLOWED_HOSTS = ['localhost','127.0.0.1']
+# ]
+# ALLOWED_HOSTS = ['localhost','127.0.0.1']
 ALLOWED_HOSTS = ['*']
 
 CORS_ALLOWED_ORIGINS = [
