@@ -228,7 +228,7 @@ class NumberTransactionValidationViewSet(viewsets.ModelViewSet):
             return JsonResponse({'status': 'failure', 'message': 'Invalid User ID'})
 
         wallet_id = user_wallet[1]  # Get wallet_id from the user_wallet
-        sender_mobile_number = user_wallet[8]  # Get mobile number
+        sender_mobile_number = user_wallet[7]  # Get mobile number
 
         # Fetch all rows from the user_currencies table
         with connection.cursor() as cursor:
@@ -240,7 +240,7 @@ class NumberTransactionValidationViewSet(viewsets.ModelViewSet):
             cursor.execute("SELECT * FROM fiat_wallet")
             receiver_rows = cursor.fetchall()
 
-        receiver_numbers = [row[8] for row in receiver_rows]  # Extract receiver mobile numbers
+        receiver_numbers = [row[7] for row in receiver_rows]  # Extract receiver mobile numbers
 
         if request.data['user_phone_number'] not in receiver_numbers:
             return JsonResponse({'status': 'mobile_failure', 'message': 'Receiver mobile number not found'})
