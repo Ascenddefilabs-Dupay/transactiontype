@@ -113,7 +113,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
         try:
             if user_wallet:  # Ensure we have wallet data for the given user_id
                 wallet_id = user_wallet[1]  # Get wallet_id from the user_wallet
-                sender_mobile_number = user_wallet[8]  # Get mobile number
+                sender_mobile_number = user_wallet[7]  # Get mobile number
 
                 # Process the transaction details
                 request.data['wallet_id'] = wallet_id
@@ -128,7 +128,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
                 wallet_ids = []
                 wallet_amount = []
                 for i in rows:
-                    receiver_numbers.append(i[8])
+                    receiver_numbers.append(i[7])
                     wallet_ids.append(i[1])
                     wallet_amount.append(i[5])
 
