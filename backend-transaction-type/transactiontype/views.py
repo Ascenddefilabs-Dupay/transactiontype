@@ -309,7 +309,7 @@ class QRValidationViewSet(viewsets.ViewSet):
             cursor.execute("SELECT * FROM fiat_wallet")
             receiver_rows = cursor.fetchall()
 
-        receiver_numbers = [row[8] for row in receiver_rows]  # Extract receiver mobile numbers
+        receiver_numbers = [row[7] for row in receiver_rows]  # Extract receiver mobile numbers
 
         if user_phone_number not in receiver_numbers:
             return JsonResponse({'status': 'mobile_failure', 'message': 'Receiver mobile number not found'})
@@ -386,7 +386,7 @@ class QRViewSet(viewsets.ModelViewSet):
             cursor.execute("SELECT * FROM fiat_wallet")
             rows = cursor.fetchall()
 
-        receiver_numbers = [row[8] for row in rows]
+        receiver_numbers = [row[7] for row in rows]
         wallet_ids = [row[1] for row in rows]
 
         if request.data['user_phone_number'] not in receiver_numbers:
