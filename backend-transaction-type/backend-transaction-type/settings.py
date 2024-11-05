@@ -31,7 +31,7 @@ DEBUG = True
     
 # ]
 # ALLOWED_HOSTS = ['localhost','127.0.0.1']
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ["*"]
 
 CORS_ALLOWED_ORIGINS = [
    "http://localhost:3000",
@@ -69,13 +69,6 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'backend-transaction-type.urls'
-
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
-
-CORS_ALLOW_ALL_ORIGINS = True
 
 
 TEMPLATES = [
@@ -137,7 +130,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'IST'
 
 USE_I18N = True
 
