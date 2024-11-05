@@ -366,7 +366,7 @@ class QRViewSet(viewsets.ModelViewSet):
             return JsonResponse({'status': 'failure', 'message': 'Invalid User ID'})
 
         wallet_id = user_wallet[1]  # Get wallet_id from the user_wallet
-        sender_mobile_number = user_wallet[8]  # Get mobile number
+        sender_mobile_number = user_wallet[7]  # Get mobile number
 
         # Fetch currency details
         with connection.cursor() as cursor:
