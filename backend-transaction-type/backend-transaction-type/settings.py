@@ -41,6 +41,9 @@ CORS_ALLOWED_ORIGINS = [
    "http://localhost:3000",
     "http://127.0.0.1:3000",
     'https://dupay.biz',
+    'https://frontend-prod-255574993735.asia-east1.run.app/'
+'https://frontend-dev-255574993735.asia-east1.run.app/'
+'https://frontend-test-255574993735.asia-east1.run.app/'
 ]
  
 CORS_ALLOW_ALL_ORIGINS = True
